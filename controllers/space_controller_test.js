@@ -37,7 +37,7 @@ describe('space_controller', () => {
       nextSpy = sinon.spy();
     });
 
-    it('should retrieve all spaces for the specified site id', async function () {
+    it('should retrieve all spaces', async function () {
       await spaceController.getSpaces(mockRequest, mockResponse);
 
       expect(mockResponse.status).always.have.been.calledOnceWithExactly(200);
