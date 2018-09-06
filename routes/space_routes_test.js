@@ -10,7 +10,7 @@ const { expect } = chai;
 
 
 describe('space_routes', () => {
-  it('should call space controller when route called', async function () {
+  it('should call getSpaces in space controller when route called', async function () {
     const mockResponseData = 'data';
     const mockSpaceController = {
       getSpaces: (request, response) => {
