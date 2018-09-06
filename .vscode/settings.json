@@ -26,5 +26,7 @@
         "autoFix": true
       }
     ],
-    "editor.formatOnSave": false
+    "editor.formatOnSave": false,
+
+    "editor.tabSize": 2,
   }
