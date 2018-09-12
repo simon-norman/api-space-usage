@@ -36,6 +36,21 @@
     {
         "type": "node",
         "request": "launch",
+        "name": "DI container incl stamps tests",
+        "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+        "args": [
+            "-u",
+            "tdd",
+            "--timeout",
+            "999999",
+            "--colors",
+            "./{,!(node_modules)/**/}*di_container_incl_stamps_test.js"
+        ],
+        "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+        "type": "node",
+        "request": "launch",
         "name": "Number of people in usage period calculator test",
         "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
         "args": [
