@@ -43,7 +43,7 @@ const setUpWebServer = () => {
 };
 
 const connectToDatabase = () =>
-  mongoose.connect(config.recordingDatabase.uri, { useNewUrlParser: true });
+  mongoose.connect(config.spaceUsageDatabase.uri, { useNewUrlParser: true });
 
 const startApp = async () => {
   try {
