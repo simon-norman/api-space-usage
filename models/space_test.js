@@ -35,6 +35,7 @@ describe('space', () => {
     await ensureSpaceCollectionEmpty();
 
     mockSpace = {
+      _id: '1AD',
       name: 'Meeting room 1',
       occupancyCapacity: 8,
       siteId: '1',
@@ -50,9 +51,17 @@ describe('space', () => {
     const space = new Space(mockSpace);
     const savedSpace = await space.save();
 
+    expect(savedSpace._id).to.equal(mockSpace._id);
     expect(savedSpace.name).to.equal(mockSpace.name);
     expect(savedSpace.occupancyCapacity).to.equal(mockSpace.occupancyCapacity);
     expect(savedSpace.siteId).to.equal(mockSpace.siteId);
+  });
+
+  it('should reject save if id not provided', async function () {
+    mockSpace._id = '';
+    const wasErrorThrown = await doesSaveSpaceThrowError();
+
+    expect(wasErrorThrown).to.equal(true);
   });
 
   it('should reject save if name not provided', async function () {
