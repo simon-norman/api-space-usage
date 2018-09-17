@@ -12,13 +12,13 @@ let diContainer;
 let app;
 
 const configureRouting = () => {
-  const routes = diContainer.getDependency('routes');
-  app.use('/', routes);
-
   app.use(cors());
 
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+
+  const routes = diContainer.getDependency('routes');
+  app.use('/', routes);
 };
 
 const setUpErrorHandler = () => {
