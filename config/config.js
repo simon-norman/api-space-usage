@@ -7,6 +7,15 @@ const config = {
     spaceUsageDatabase: {
       uri: 'mongodb://localhost:27017/space_usage_dev',
     },
+    errorLogging: {
+      environment: '',
+      ravenConfig: [
+        process.env.RAVEN_DSN,
+        {
+          captureUnhandledRejections: true,
+        },
+      ],
+    },
   },
 
   test: {
@@ -15,6 +24,15 @@ const config = {
     },
     spaceUsageDatabase: {
       uri: process.env.SPACE_USAGE_DATABASE_URI,
+    },
+    errorLogging: {
+      environment: '',
+      ravenConfig: [
+        process.env.RAVEN_DSN,
+        {
+          captureUnhandledRejections: true,
+        },
+      ],
     },
   },
 
@@ -25,6 +43,15 @@ const config = {
     spaceUsageDatabase: {
       uri: process.env.SPACE_USAGE_DATABASE_URI,
     },
+    errorLogging: {
+      environment: '',
+      ravenConfig: [
+        process.env.RAVEN_DSN,
+        {
+          captureUnhandledRejections: true,
+        },
+      ],
+    },
   },
 
   production: {
@@ -33,6 +60,15 @@ const config = {
     },
     spaceUsageDatabase: {
       uri: process.env.SPACE_USAGE_DATABASE_URI,
+    },
+    errorLogging: {
+      environment: '',
+      ravenConfig: [
+        process.env.RAVEN_DSN,
+        {
+          captureUnhandledRejections: true,
+        },
+      ],
     },
   },
 };
