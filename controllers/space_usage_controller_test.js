@@ -41,6 +41,9 @@ describe('space_usage_controller', () => {
     const requestData = {
       body: {
         numberOfPeopleRecorded: 1,
+        spaceId: 0,
+        usagePeriodStartTime: new Date('Monday, 24-Sep-18 12:45:00 UTC'),
+        usagePeriodEndTime: new Date('Monday, 24-Sep-18 13:00:00 UTC'),
       },
     };
     mockRequest = mockReq(requestData);
@@ -62,9 +65,19 @@ describe('space_usage_controller', () => {
       expect(mockResponse.status).always.have.been.calledOnceWithExactly(200);
 
       expect(mockResponse.json.firstCall.args[0].numberOfPeopleRecorded)
-        .equals(savedMockSpaceUsage[0].numberOfPeopleRecorded);
+        .deep.equals(savedMockSpaceUsage[0].numberOfPeopleRecorded);
+
+      expect(mockResponse.json.firstCall.args[0].spaceId)
+        .deep.equals(savedMockSpaceUsage[0].spaceId);
+
+      expect(mockResponse.json.firstCall.args[0].usagePeriodStartTime)
+        .deep.equals(savedMockSpaceUsage[0].usagePeriodStartTime);
+
+      expect(mockResponse.json.firstCall.args[0].usagePeriodEndTime)
+        .deep.equals(savedMockSpaceUsage[0].usagePeriodEndTime);
+
       expect(mockResponse.json.firstCall.args[0]._id)
-        .equals(savedMockSpaceUsage[0]._id);
+        .deep.equals(savedMockSpaceUsage[0]._id);
     });
   });
 
