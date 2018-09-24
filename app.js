@@ -46,17 +46,13 @@ const connectToDatabase = () =>
   mongoose.connect(config.spaceUsageDatabase.uri, { useNewUrlParser: true });
 
 const startApp = async () => {
-  try {
-    diContainer = wireUpApp();
+  diContainer = wireUpApp();
 
-    config = getConfigForEnvironment(process.env.NODE_ENV);
+  config = getConfigForEnvironment(process.env.NODE_ENV);
 
-    setUpWebServer();
+  setUpWebServer();
 
-    await connectToDatabase();
-  } catch (error) {
-    console.log(error);
-  }
+  await connectToDatabase();
 };
 
 const errorLoggingConfig = getConfigForEnvironment(process.env.NODE_ENV).errorLogging;

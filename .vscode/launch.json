@@ -156,6 +156,13 @@
     {
         "type": "node",
         "request": "launch",
+        "name": "Launch Program in test environment",
+        "env": {"NODE_ENV": "test"},
+        "program": "${workspaceRoot}/app.js"
+    },
+    {
+        "type": "node",
+        "request": "launch",
         "name": "Launch Program",
         "env": {"NODE_ENV": "development"},
         "program": "${workspaceRoot}/app.js"
