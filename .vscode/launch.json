@@ -156,6 +156,13 @@
     {
         "type": "node",
         "request": "launch",
+        "name": "Launch graphql server",
+        "env": {"NODE_ENV": "test"},
+        "program": "${workspaceRoot}/server/server.js"
+    },
+    {
+        "type": "node",
+        "request": "launch",
         "name": "Launch Program in test environment",
         "env": {"NODE_ENV": "test"},
         "program": "${workspaceRoot}/app.js"
