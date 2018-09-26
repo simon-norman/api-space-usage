@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 
 module.exports = (Client, SpaceUsage) => {
   const typeDefs = `
@@ -15,9 +17,23 @@ module.exports = (Client, SpaceUsage) => {
 
   const resolvers = {
     Query: {
-      spaceUsagesBySiteId: async (_, siteId) => {
-        const clientsForSite = await Client.find({ 'sites._id': siteId });
-        return 'stuff';
+      spaceUsagesBySiteId: async (_, query) => {
+        try {
+          const siteIdAsMongoId = mongoose.Types.ObjectId(query.siteId);
+          const clientsForSite = await Client.aggregate([
+            { $unwind: '$sites' },
+            {
+              $match: {
+                'sites._id': siteIdAsMongoId,
+              },
+            },
+            { $unwind: '$sites.floors' },
+            { $replaceRoot: { newRoot: '$sites.floors' } },
+          ]);
+          return 'stuff';
+        } catch (error) {
+          return error;
+        }
       },
     },
   };

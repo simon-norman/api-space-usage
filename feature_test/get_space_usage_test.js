@@ -54,7 +54,7 @@ describe('Get space usage', () => {
     const config = getConfigForEnvironment(process.env.NODE_ENV);
     await mongoose.connect(config.spaceUsageDatabase.uri, { useNewUrlParser: true });
 
-    ({ typeDefs, resolvers } = GetSpaceUsageControllerFactory());
+    ({ typeDefs, resolvers } = GetSpaceUsageControllerFactory(Client, SpaceUsage));
   });
 
   beforeEach(async () => {
@@ -100,7 +100,7 @@ describe('Get space usage', () => {
     const response = await request
       .post('/')
       .send({
-        query: `{ spaceUsagesBySiteId(siteId: "3") {
+        query: `{ spaceUsagesBySiteId(siteId: "${secondSiteId}") {
         spaceId
         usagePeriodStartTime
         usagePeriodEndTime
