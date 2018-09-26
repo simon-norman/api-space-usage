@@ -12,9 +12,61 @@ const { expect } = chai;
 
 
 describe('Get space usage', () => {
+  let mockClients;
   let mockSpaceUsages;
+  let savedSpaceUsagesInHttpResponseFormat;
   let typeDefs;
   let resolvers;
+
+  const setUpSpaceUsageApi = async () => {
+    const spaceUsageApi = new GraphQLServer({
+      typeDefs,
+      resolvers,
+    });
+    await spaceUsageApi.start();
+  };
+
+  const ensureClientCollectionEmpty = async () => {
+    const clients = await Client.find({});
+    if (clients.length) {
+      await Client.collection.drop();
+    }
+  };
+
+  const setUpMockClients = async () => {
+    await ensureClientCollectionEmpty();
+    
+    mockClients = [];
+    let spaceId1 = 0;
+    for (let i = 1; i <= 2; i += 1) {
+      mockClients.push({
+        name: 'ABC Inc',
+        sites: [
+          {
+            name: 'ABC site a',
+          },
+          {
+            name: 'ABC site b',
+            floors: [
+              {
+                name: 'Ground floor',
+                spaceIds: [spaceId1.toString(), '1'],
+              },
+            ],
+          },
+        ],
+      });
+
+      spaceId1 += 10;
+    }
+  };
+
+  const ensureSpaceUsageCollectionEmpty = async () => {
+    const spaceUsageRecords = await SpaceUsage.find({});
+    if (spaceUsageRecords.length) {
+      await SpaceUsage.collection.drop();
+    }
+  };
 
   const setUpMockSpaceUsages = () => {
     mockSpaceUsages = [];
@@ -30,25 +82,25 @@ describe('Get space usage', () => {
     }
   };
 
-  const ensureSpaceUsageCollectionEmpty = async () => {
-    const spaceUsageRecords = await SpaceUsage.find({});
-    if (spaceUsageRecords.length) {
-      await SpaceUsage.collection.drop();
+  const convertMongoDocsToHttpResponseFormat = (mongoDocs) => {
+    const convertedMongoDocs = JSON.parse(JSON.stringify(mongoDocs));
+    for (const convertedMongoDoc of convertedMongoDocs) {
+      delete convertedMongoDoc.__v;
     }
+
+    return convertedMongoDocs;
   };
 
-  const ensureClientCollectionEmpty = async () => {
-    const clients = await Client.find({});
-    if (clients.length) {
-      await Client.collection.drop();
-    }
-  };
+  const setUpSavedSpaceUsagesInHttpResponseFormat = async () => {
+    await ensureSpaceUsageCollectionEmpty();
 
-  const setPromisifiedTimeout = timeoutPeriodInMilliseconds => new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, timeoutPeriodInMilliseconds);
-  });
+    setUpMockSpaceUsages();
+
+    await SpaceUsage.insertMany(mockSpaceUsages);
+    const savedSpaceUsages = await SpaceUsage.find({ spaceId: { $in: ['0', '1'] } });
+    savedSpaceUsagesInHttpResponseFormat
+      = convertMongoDocsToHttpResponseFormat(savedSpaceUsages);
+  };
 
   before(async () => {
     const config = getConfigForEnvironment(process.env.NODE_ENV);
@@ -58,42 +110,18 @@ describe('Get space usage', () => {
   });
 
   beforeEach(async () => {
-    setUpMockSpaceUsages();
+    setUpSpaceUsageApi();
 
-    await ensureSpaceUsageCollectionEmpty();
+    setUpMockClients();
 
-    await ensureClientCollectionEmpty();
+    setUpSavedSpaceUsagesInHttpResponseFormat();
   });
 
-  it('should retrieve all space usages for a given site id', async function (done) {
-    const client = new Client({
-      name: 'ABC Inc',
-      sites: [
-        {
-          name: 'ABC site a',
-        },
-        {
-          name: 'ABC site b',
-          floors: [
-            {
-              name: 'Ground floor',
-              spaceIds: ['0', '1'],
-            },
-          ],
-        },
-      ],
-    });
-    const savedClient = await client.save();
-    const secondSiteId = savedClient.sites[1].id;
+  it('should retrieve all space usages for a given site id', async function () {
+    await Client.insertMany(mockClients);
+    const savedClients = await Client.find({});
+    const secondSiteId = savedClients[0].sites[1].id;
 
-    await SpaceUsage.insertMany(mockSpaceUsages);
-    const savedSpaceUsages = await SpaceUsage.find({});
-
-    const spaceUsageApi = new GraphQLServer({
-      typeDefs,
-      resolvers,
-    });
-    await spaceUsageApi.start();
 
     request = request('http://localhost:4000');
 
@@ -101,6 +129,7 @@ describe('Get space usage', () => {
       .post('/')
       .send({
         query: `{ spaceUsagesBySiteId(siteId: "${secondSiteId}") {
+        _id
         spaceId
         usagePeriodStartTime
         usagePeriodEndTime
@@ -109,7 +138,7 @@ describe('Get space usage', () => {
       });
 
     // check that returns all space usages loaded earlier
-    expect(response.data).equals(savedSpaceUsages);
+    expect(response.body.data.spaceUsagesBySiteId).deep.equals(savedSpaceUsagesInHttpResponseFormat);
   });
 });
 

@@ -8,6 +8,7 @@ module.exports = (Client, SpaceUsage) => {
     }
 
     type SpaceUsage {
+      _id: String!
       spaceId: String!
       usagePeriodStartTime: String!
       usagePeriodEndTime: String!
@@ -20,7 +21,8 @@ module.exports = (Client, SpaceUsage) => {
       spaceUsagesBySiteId: async (_, query) => {
         try {
           const siteIdAsMongoId = mongoose.Types.ObjectId(query.siteId);
-          const clientsForSite = await Client.aggregate([
+
+          const siteWithAllSpaceIds = await Client.aggregate([
             { $unwind: '$sites' },
             {
               $match: {
@@ -28,9 +30,25 @@ module.exports = (Client, SpaceUsage) => {
               },
             },
             { $unwind: '$sites.floors' },
-            { $replaceRoot: { newRoot: '$sites.floors' } },
+            { $group: { _id: query.siteId, spaceIds: { $addToSet: '$sites.floors.spaceIds' } } },
+            {
+              $project: {
+                spaceIds: {
+                  $reduce: {
+                    input: '$spaceIds',
+                    initialValue: [],
+                    in: { $setUnion: ['$$value', '$$this'] },
+                  },
+                },
+              },
+            },
           ]);
-          return 'stuff';
+
+          const spaceIdsForSite = siteWithAllSpaceIds[0].spaceIds;
+          const spaceUsages = await SpaceUsage.find({ spaceId: { $in: spaceIdsForSite } });
+
+          const spaceUsagesWithUtcDate = JSON.parse(JSON.stringify(spaceUsages));
+          return spaceUsagesWithUtcDate;
         } catch (error) {
           return error;
         }
