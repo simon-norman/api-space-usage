@@ -16,39 +16,58 @@ module.exports = (Client, SpaceUsage) => {
     }
   `;
 
+  const getMongoStagesToFilterClientsBySiteId = siteIdAsMongoId => [
+    {
+      $match: {
+        'sites._id': siteIdAsMongoId,
+      },
+    },
+  ];
+
+  const mongoStagesToUnwindNestedSitesFloors = [
+    { $unwind: '$sites' },
+    { $unwind: '$sites.floors' },
+  ];
+
+  const mongoStagesToGroupSpaceIdsFromClientsIntoOneDoc = [
+    { $group: { _id: undefined, spaceIds: { $addToSet: '$sites.floors.spaceIds' } } },
+    {
+      $project: {
+        spaceIds: {
+          $reduce: {
+            input: '$spaceIds',
+            initialValue: [],
+            in: { $setUnion: ['$$value', '$$this'] },
+          },
+        },
+      },
+    },
+  ];
+
+  const getMongoQueryToGetSpaceIdsForSiteId = (siteIdAsMongoId) => {
+    const queryToGetSpaceIdsFromDiffClients = [
+      ...getMongoStagesToFilterClientsBySiteId(siteIdAsMongoId),
+      ...mongoStagesToUnwindNestedSitesFloors,
+      ...mongoStagesToGroupSpaceIdsFromClientsIntoOneDoc,
+    ];
+
+    return queryToGetSpaceIdsFromDiffClients;
+  };
+
   const resolvers = {
     Query: {
       spaceUsagesBySiteId: async (_, query) => {
         try {
           const siteIdAsMongoId = mongoose.Types.ObjectId(query.siteId);
 
-          const siteWithAllSpaceIds = await Client.aggregate([
-            { $unwind: '$sites' },
-            {
-              $match: {
-                'sites._id': siteIdAsMongoId,
-              },
-            },
-            { $unwind: '$sites.floors' },
-            { $group: { _id: query.siteId, spaceIds: { $addToSet: '$sites.floors.spaceIds' } } },
-            {
-              $project: {
-                spaceIds: {
-                  $reduce: {
-                    input: '$spaceIds',
-                    initialValue: [],
-                    in: { $setUnion: ['$$value', '$$this'] },
-                  },
-                },
-              },
-            },
-          ]);
-
+          const queryToGetSpaceIdsForSiteId = getMongoQueryToGetSpaceIdsForSiteId(siteIdAsMongoId);
+          const siteWithAllSpaceIds = await Client.aggregate(queryToGetSpaceIdsForSiteId);
           const spaceIdsForSite = siteWithAllSpaceIds[0].spaceIds;
+
           const spaceUsages = await SpaceUsage.find({ spaceId: { $in: spaceIdsForSite } });
 
-          const spaceUsagesWithUtcDate = JSON.parse(JSON.stringify(spaceUsages));
-          return spaceUsagesWithUtcDate;
+          const spaceUsagesWithDatesFormattedUtc = JSON.parse(JSON.stringify(spaceUsages));
+          return spaceUsagesWithDatesFormattedUtc;
         } catch (error) {
           return error;
         }
