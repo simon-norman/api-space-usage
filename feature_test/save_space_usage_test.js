@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const mongoose = require('mongoose');
 const SaveSpaceUsageControllerFactory = require('../controllers/save_space_usage_controller');
 const { GraphQLServer } = require('graphql-yoga');
-const SpaceUsage = require('../models/space_usage');
+const SpaceUsage = require('../models/space_usage_model');
 const { readFileSync } = require('fs');
 
 const { expect } = chai;

@@ -6,7 +6,7 @@ module.exports = async (
   getSpaceUsageController,
   saveSpaceUsageController,
   spaceController,
-  spaceUsageDataSchema,
+  spaceUsageDataSchema
 ) => {
   const types = [
     spaceUsageDataSchema,

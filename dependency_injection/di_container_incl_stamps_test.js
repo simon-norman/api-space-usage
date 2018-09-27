@@ -4,8 +4,8 @@ const { expect } = require('chai');
 const DiContainerInclStampsStampFactory = require('./di_container_incl_stamps');
 const DiContainerStampFactory = require('./di_container');
 const stampit = require('stampit');
-const DependencyNotFoundError = require('../services/error_handling/errors/DependencyNotFoundError.js');
-const DependencyAlreadyRegisteredError = require('../services/error_handling/errors/DependencyAlreadyRegisteredError');
+const DependencyNotFoundError = require('../helpers/error_handling/errors/DependencyNotFoundError.js');
+const DependencyAlreadyRegisteredError = require('../helpers/error_handling/errors/DependencyAlreadyRegisteredError');
 
 describe('di_container', () => {
   let dependencyOneData;

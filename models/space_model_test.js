@@ -2,7 +2,7 @@
 const { expect } = require('chai');
 const mongoose = require('mongoose');
 const { getConfigForEnvironment } = require('../config/config.js');
-const Space = require('./space.js');
+const Space = require('./space_model');
 
 describe('space', () => {
   let config;
@@ -38,7 +38,6 @@ describe('space', () => {
       _id: '1AD',
       name: 'Meeting room 1',
       occupancyCapacity: 8,
-      siteId: '1',
     };
   });
 
@@ -73,13 +72,6 @@ describe('space', () => {
 
   it('should reject save if occupancyCapacity not provided', async function () {
     mockSpace.occupancyCapacity = '';
-    const wasErrorThrown = await doesSaveSpaceThrowError();
-
-    expect(wasErrorThrown).to.equal(true);
-  });
-
-  it('should reject save if siteId not provided', async function () {
-    mockSpace.siteId = '';
     const wasErrorThrown = await doesSaveSpaceThrowError();
 
     expect(wasErrorThrown).to.equal(true);

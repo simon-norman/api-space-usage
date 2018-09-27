@@ -4,10 +4,10 @@ const { getConfigForEnvironment } = require('../config/config.js');
 let request = require('supertest');
 const sinon = require('sinon');
 const mongoose = require('mongoose');
-const Client = require('../models/client');
+const Client = require('../models/client_model');
 const GetSpaceUsageControllerFactory = require('../controllers/get_space_usage_controller');
 const { GraphQLServer } = require('graphql-yoga');
-const SpaceUsage = require('../models/space_usage');
+const SpaceUsage = require('../models/space_usage_model');
 const { readFileSync } = require('fs');
 
 const { expect } = chai;
