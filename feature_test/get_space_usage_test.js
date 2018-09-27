@@ -128,7 +128,7 @@ describe('Get space usage', () => {
     const response = await request
       .post('/')
       .send({
-        query: `{ spaceUsagesBySiteId(siteId: "${mockSiteId}") {
+        query: `{ SpaceUsagesBySiteId(siteId: "${mockSiteId}") {
         _id
         spaceId
         usagePeriodStartTime

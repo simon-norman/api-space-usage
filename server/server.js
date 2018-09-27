@@ -3,31 +3,39 @@ const { GraphQLServer } = require('graphql-yoga');
 
 const typeDefs = `
 type Query {
-  spaceUsagesById(spaceIds: [String]): [SpaceUsage!]!
+  spaceUsagesBySiteId(siteId: String): [SpaceUsage!]!
 }
 
 type SpaceUsage {
-  spaceId: Int!
-  description: String!
+  _id: String!
+  spaceId: String!
+  usagePeriodStartTime: String!
+  usagePeriodEndTime: String!
+  numberOfPeopleRecorded: Int!
+}
+
+input SpaceUsageInput {
+  spaceId: String!
+  usagePeriodStartTime: String!
+  usagePeriodEndTime: String!
+  numberOfPeopleRecorded: Int!
+}
+
+type Mutation {
+  CreateSpaceUsage(input: SpaceUsageInput): SpaceUsage!
 }
 `;
 
-const spaceUsages = [
-  {
-    spaceId: '1',
-    description: 'some usage',
-  },
-  {
-    spaceId: '2',
-    description: 'some usage 2',
-  },
-];
-
-
 const resolvers = {
   Query: {
-    spaceUsagesById: (_, spaceId) => {
-      return spaceUsages;
+    spaceUsagesBySiteId: async (_, request) => {
+      console.log('stuff');
+    },
+  },
+
+  Mutation: {
+    CreateSpaceUsage: async (_, request) => {
+      console.log('stuff');
     },
   },
 };
