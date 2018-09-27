@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const SaveSpaceUsageControllerFactory = require('../controllers/save_space_usage_controller');
 const { GraphQLServer } = require('graphql-yoga');
 const SpaceUsage = require('../models/space_usage');
+const { readFileSync } = require('fs');
 
 const { expect } = chai;
 
@@ -21,10 +22,15 @@ describe('Save space usage', () => {
   let resolvers;
 
   const setUpSpaceUsageApi = async () => {
+    ({ typeDefs, resolvers } = SaveSpaceUsageControllerFactory(SpaceUsage));
+
+    const spaceUsageDataSchema = readFileSync('graphql_schema/space_usage_schema.graphql', 'utf8');
+
     const spaceUsageApi = new GraphQLServer({
-      typeDefs,
+      typeDefs: [spaceUsageDataSchema, typeDefs],
       resolvers,
     });
+
     spaceUsageApiInstance = await spaceUsageApi.start({
       debug: false,
     });
@@ -62,8 +68,6 @@ describe('Save space usage', () => {
   before(async () => {
     const config = getConfigForEnvironment(process.env.NODE_ENV);
     await mongoose.connect(config.spaceUsageDatabase.uri, { useNewUrlParser: true });
-
-    ({ typeDefs, resolvers } = SaveSpaceUsageControllerFactory(SpaceUsage));
 
     await setUpSpaceUsageApi();
 

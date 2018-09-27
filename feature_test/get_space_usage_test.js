@@ -8,6 +8,7 @@ const Client = require('../models/client');
 const GetSpaceUsageControllerFactory = require('../controllers/get_space_usage_controller');
 const { GraphQLServer } = require('graphql-yoga');
 const SpaceUsage = require('../models/space_usage');
+const { readFileSync } = require('fs');
 
 const { expect } = chai;
 const sinonSandbox = sinon.sandbox.create();
@@ -23,10 +24,14 @@ describe('Get space usage', () => {
   let resolvers;
 
   const setUpSpaceUsageApi = async () => {
+    ({ typeDefs, resolvers } = GetSpaceUsageControllerFactory(Client, SpaceUsage));
+    const spaceUsageDataSchema = readFileSync('graphql_schema/space_usage_schema.graphql', 'utf8');
+
     const spaceUsageApi = new GraphQLServer({
-      typeDefs,
+      typeDefs: [spaceUsageDataSchema, typeDefs],
       resolvers,
     });
+
     spaceUsageApiInstance = await spaceUsageApi.start({
       debug: false,
     });
@@ -122,8 +127,6 @@ describe('Get space usage', () => {
   before(async () => {
     const config = getConfigForEnvironment(process.env.NODE_ENV);
     await mongoose.connect(config.spaceUsageDatabase.uri, { useNewUrlParser: true });
-
-    ({ typeDefs, resolvers } = GetSpaceUsageControllerFactory(Client, SpaceUsage));
 
     await setUpSpaceUsageApi();
   });

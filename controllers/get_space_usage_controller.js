@@ -6,14 +6,6 @@ module.exports = (Client, SpaceUsage) => {
     type Query {
       SpaceUsagesBySiteId(siteId: String): [SpaceUsage!]!
     }
-
-    type SpaceUsage {
-      _id: String!
-      spaceId: String!
-      usagePeriodStartTime: Float!
-      usagePeriodEndTime: Float!
-      numberOfPeopleRecorded: Int!
-    }
   `;
 
   const getMongoStagesToFilterClientsBySiteId = siteIdAsMongoId => [

@@ -9,21 +9,6 @@ module.exports = (SpaceUsage) => {
     type Mutation {
       CreateSpaceUsage(input: SpaceUsageInput): SpaceUsage!
     }
-
-    type SpaceUsage {
-      _id: String!
-      spaceId: String!
-      usagePeriodStartTime: Float!
-      usagePeriodEndTime: Float!
-      numberOfPeopleRecorded: Int!
-    }
-
-    input SpaceUsageInput {
-      spaceId: String!
-      usagePeriodStartTime: Float!
-      usagePeriodEndTime: Float!
-      numberOfPeopleRecorded: Int!
-    }
   `;
 
   const resolvers = {

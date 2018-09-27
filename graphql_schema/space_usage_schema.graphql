@@ -1,0 +1,15 @@
+
+    type SpaceUsage {
+      _id: String!
+      spaceId: String
+      usagePeriodStartTime: Float!
+      usagePeriodEndTime: Float!
+      numberOfPeopleRecorded: Int!
+    }
+
+    input SpaceUsageInput {
+      spaceId: String!
+      usagePeriodStartTime: Float!
+      usagePeriodEndTime: Float!
+      numberOfPeopleRecorded: Int!
+    }
