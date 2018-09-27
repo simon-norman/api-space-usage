@@ -30,6 +30,8 @@ describe('Get space usage', () => {
     spaceUsageApiInstance = await spaceUsageApi.start({
       debug: false,
     });
+
+    request = request('http://localhost:4000');
   };
 
   const ensureClientCollectionEmpty = async () => {
@@ -124,8 +126,6 @@ describe('Get space usage', () => {
     ({ typeDefs, resolvers } = GetSpaceUsageControllerFactory(Client, SpaceUsage));
 
     await setUpSpaceUsageApi();
-
-    request = request('http://localhost:4000');
   });
 
   beforeEach(async () => {
