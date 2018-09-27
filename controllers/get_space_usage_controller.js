@@ -4,14 +4,14 @@ const mongoose = require('mongoose');
 module.exports = (Client, SpaceUsage) => {
   const typeDefs = `
     type Query {
-      spaceUsagesBySiteId(siteId: String): [SpaceUsage!]!
+      SpaceUsagesBySiteId(siteId: String): [SpaceUsage!]!
     }
 
     type SpaceUsage {
       _id: String!
       spaceId: String!
-      usagePeriodStartTime: String!
-      usagePeriodEndTime: String!
+      usagePeriodStartTime: Float!
+      usagePeriodEndTime: Float!
       numberOfPeopleRecorded: Int!
     }
   `;
@@ -56,21 +56,16 @@ module.exports = (Client, SpaceUsage) => {
 
   const resolvers = {
     Query: {
-      spaceUsagesBySiteId: async (_, query) => {
-        try {
-          const siteIdAsMongoId = mongoose.Types.ObjectId(query.siteId);
+      SpaceUsagesBySiteId: async (_, query) => {
+        const siteIdAsMongoId = mongoose.Types.ObjectId(query.siteId);
 
-          const queryToGetSpaceIdsForSiteId = getMongoQueryToGetSpaceIdsForSiteId(siteIdAsMongoId);
-          const siteWithAllSpaceIds = await Client.aggregate(queryToGetSpaceIdsForSiteId);
-          const spaceIdsForSite = siteWithAllSpaceIds[0].spaceIds;
+        const queryToGetSpaceIdsForSiteId = getMongoQueryToGetSpaceIdsForSiteId(siteIdAsMongoId);
+        const siteWithAllSpaceIds = await Client.aggregate(queryToGetSpaceIdsForSiteId);
+        const spaceIdsForSite = siteWithAllSpaceIds[0].spaceIds;
 
-          const spaceUsages = await SpaceUsage.find({ spaceId: { $in: spaceIdsForSite } });
+        const spaceUsages = await SpaceUsage.find({ spaceId: { $in: spaceIdsForSite } });
 
-          const spaceUsagesWithDatesFormattedUtc = JSON.parse(JSON.stringify(spaceUsages));
-          return spaceUsagesWithDatesFormattedUtc;
-        } catch (error) {
-          return error;
-        }
+        return spaceUsages;
       },
     },
   };

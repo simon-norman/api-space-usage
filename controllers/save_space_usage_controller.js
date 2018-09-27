@@ -29,24 +29,20 @@ module.exports = (SpaceUsage) => {
   const resolvers = {
     Mutation: {
       CreateSpaceUsage: async (_, { input }) => {
-        try {
-          let savedSpaceUsage = await SpaceUsage.findByIdAndUpdate(
-            input._id,
-            input,
-            {
-              runValidators: true,
-            },
-          );
+        let savedSpaceUsage = await SpaceUsage.findByIdAndUpdate(
+          input._id,
+          input,
+          {
+            runValidators: true,
+          },
+        );
 
-          if (!savedSpaceUsage) {
-            savedSpaceUsage = new SpaceUsage(input);
-            savedSpaceUsage = await savedSpaceUsage.save();
-          }
-
-          return savedSpaceUsage;
-        } catch (err) {
-          return err;
+        if (!savedSpaceUsage) {
+          savedSpaceUsage = new SpaceUsage(input);
+          savedSpaceUsage = await savedSpaceUsage.save();
         }
+
+        return savedSpaceUsage;
       },
     },
   };

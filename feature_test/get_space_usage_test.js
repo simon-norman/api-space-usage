@@ -2,6 +2,7 @@
 const chai = require('chai');
 const { getConfigForEnvironment } = require('../config/config.js');
 let request = require('supertest');
+const sinon = require('sinon');
 const mongoose = require('mongoose');
 const Client = require('../models/client');
 const GetSpaceUsageControllerFactory = require('../controllers/get_space_usage_controller');
@@ -9,6 +10,7 @@ const { GraphQLServer } = require('graphql-yoga');
 const SpaceUsage = require('../models/space_usage');
 
 const { expect } = chai;
+const sinonSandbox = sinon.sandbox.create();
 
 
 describe('Get space usage', () => {
@@ -16,6 +18,7 @@ describe('Get space usage', () => {
   let mockSiteId;
   let mockSpaceUsages;
   let spaceUsagesExpectedToBeInResponse;
+  let getSpaceUsageQueryString;
   let typeDefs;
   let resolvers;
 
@@ -24,7 +27,9 @@ describe('Get space usage', () => {
       typeDefs,
       resolvers,
     });
-    spaceUsageApiInstance = await spaceUsageApi.start();
+    spaceUsageApiInstance = await spaceUsageApi.start({
+      debug: false,
+    });
   };
 
   const ensureClientCollectionEmpty = async () => {
@@ -73,8 +78,8 @@ describe('Get space usage', () => {
     for (let i = 1; i <= 4; i += 1) {
       mockSpaceUsages.push({
         spaceId,
-        usagePeriodStartTime: new Date('October 10, 2010 11:00:00'),
-        usagePeriodEndTime: new Date('October 10, 2010 11:15:00'),
+        usagePeriodStartTime: new Date('October 10, 2010 11:00:00').getTime(),
+        usagePeriodEndTime: new Date('October 10, 2010 11:15:00').getTime(),
         numberOfPeopleRecorded: 5,
       });
       spaceId += 1;
@@ -102,21 +107,37 @@ describe('Get space usage', () => {
       = convertMongoDocsToHttpResponseFormat(savedSpaceUsages);
   };
 
+  const setUpGetSpaceUsageQueryString = () => {
+    getSpaceUsageQueryString = `{ SpaceUsagesBySiteId(siteId: "${mockSiteId}") {
+      _id
+      spaceId
+      usagePeriodStartTime
+      usagePeriodEndTime
+      numberOfPeopleRecorded
+    }}`;
+  };
+
   before(async () => {
     const config = getConfigForEnvironment(process.env.NODE_ENV);
     await mongoose.connect(config.spaceUsageDatabase.uri, { useNewUrlParser: true });
 
     ({ typeDefs, resolvers } = GetSpaceUsageControllerFactory(Client, SpaceUsage));
+
+    await setUpSpaceUsageApi();
+
+    request = request('http://localhost:4000');
   });
 
   beforeEach(async () => {
-    await setUpSpaceUsageApi();
-
     await setUpMockSites();
 
     await setUpSpaceUsagesExpectedToBeInResponse();
 
-    request = request('http://localhost:4000');
+    setUpGetSpaceUsageQueryString();
+  });
+
+  afterEach(() => {
+    sinonSandbox.restore();
   });
 
   after(async () => {
@@ -128,17 +149,25 @@ describe('Get space usage', () => {
     const response = await request
       .post('/')
       .send({
-        query: `{ SpaceUsagesBySiteId(siteId: "${mockSiteId}") {
-        _id
-        spaceId
-        usagePeriodStartTime
-        usagePeriodEndTime
-        numberOfPeopleRecorded
-      }}`,
+        query: getSpaceUsageQueryString,
       });
 
-    expect(response.body.data.spaceUsagesBySiteId)
+    expect(response.body.data.SpaceUsagesBySiteId)
       .deep.equals(spaceUsagesExpectedToBeInResponse);
+  });
+
+  it('should return error if error thrown during get', async function () {
+    const stubbedAggregate = sinonSandbox.stub(Client, 'aggregate');
+    const errorMessage = 'error message';
+    stubbedAggregate.throws(new Error(errorMessage));
+
+    const response = await request
+      .post('/')
+      .send({
+        query: getSpaceUsageQueryString,
+      });
+
+    expect(response.body.errors[0].message).equals(errorMessage);
   });
 });
 
