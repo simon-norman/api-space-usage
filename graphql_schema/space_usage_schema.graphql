@@ -13,3 +13,9 @@
       usagePeriodEndTime: Float!
       numberOfPeopleRecorded: Int!
     }
+
+    type Space {
+      _id: String!
+      name: String!
+      occupancyCapacity: Int!
+    }
