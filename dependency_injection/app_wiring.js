@@ -1,6 +1,6 @@
 
-const DependencyNotFoundError = require('../services/error_handling/errors/DependencyNotFoundError');
-const DependencyAlreadyRegisteredError = require('../services/error_handling/errors/DependencyAlreadyRegisteredError');
+const DependencyNotFoundError = require('../helpers/error_handling/errors/DependencyNotFoundError');
+const DependencyAlreadyRegisteredError = require('../helpers/error_handling/errors/DependencyAlreadyRegisteredError');
 const DiContainerStampFactory = require('./di_container');
 const DiContainerInclStampsStampFactory = require('./di_container_incl_stamps');
 const Space = require('../models/space');

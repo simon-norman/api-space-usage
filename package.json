@@ -41,6 +41,7 @@
     "graphql-tools": "^4.0.0",
     "graphql-yoga": "^1.16.2",
     "mathjs": "^5.1.1",
+    "merge-graphql-schemas": "^1.5.7",
     "mongoose": "^5.2.9",
     "parse-fn-args": "^1.0.1",
     "raven": "^2.6.3",
