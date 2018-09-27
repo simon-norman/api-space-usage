@@ -5,11 +5,10 @@ const DiContainerStampFactory = require('./di_container');
 const DiContainerInclStampsStampFactory = require('./di_container_incl_stamps');
 const Space = require('../models/space');
 const SpaceControllerFactory = require('../controllers/space_controller');
-const SpaceRoutesFactory = require('../routes/space_routes');
+const Client = require('../models/client');
 const SpaceUsage = require('../models/space_usage');
-const SpaceUsageControllerFactory = require('../controllers/space_usage_controller');
-const SpaceUsageRoutesFactory = require('../routes/space_usage_routes');
-const RoutesFactory = require('../routes/index');
+const GetSpaceUsageControllerFactory = require('../controllers/get_space_usage_controller');
+const SaveSpaceUsageControllerFactory = require('../controllers/save_space_usage_controller');
 
 let diContainer;
 let registerDependency;
