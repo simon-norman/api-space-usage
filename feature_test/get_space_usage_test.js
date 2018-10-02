@@ -155,7 +155,6 @@ describe('Get space usage', () => {
         query: getSpaceUsageQueryString,
       });
 
-    console.log(response);
     expect(response.body.data.SpaceUsagesBySiteId)
       .deep.equals(spaceUsagesExpectedToBeInResponse);
   });
