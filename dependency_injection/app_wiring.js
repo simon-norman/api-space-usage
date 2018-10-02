@@ -1,15 +1,16 @@
 
-const DependencyNotFoundError = require('../services/error_handling/errors/DependencyNotFoundError');
-const DependencyAlreadyRegisteredError = require('../services/error_handling/errors/DependencyAlreadyRegisteredError');
+const DependencyNotFoundError = require('../helpers/error_handling/errors/DependencyNotFoundError');
+const DependencyAlreadyRegisteredError = require('../helpers/error_handling/errors/DependencyAlreadyRegisteredError');
 const DiContainerStampFactory = require('./di_container');
 const DiContainerInclStampsStampFactory = require('./di_container_incl_stamps');
-const Space = require('../models/space');
+const Space = require('../models/space_model');
 const SpaceControllerFactory = require('../controllers/space_controller');
-const SpaceRoutesFactory = require('../routes/space_routes');
-const SpaceUsage = require('../models/space_usage');
-const SpaceUsageControllerFactory = require('../controllers/space_usage_controller');
-const SpaceUsageRoutesFactory = require('../routes/space_usage_routes');
-const RoutesFactory = require('../routes/index');
+const Client = require('../models/client_model');
+const SpaceUsage = require('../models/space_usage_model');
+const GetSpaceUsageControllerFactory = require('../controllers/get_space_usage_controller');
+const SaveSpaceUsageControllerFactory = require('../controllers/save_space_usage_controller');
+const ServerFactory = require('../server/server');
+const { readFileSync } = require('fs');
 
 let diContainer;
 let registerDependency;
@@ -36,29 +37,23 @@ const setUpDiContainer = () => {
   getFunctionsFromDiContainer();
 };
 
-const registerSpaceRoutes = () => {
+const registerSpaceUsageRoutes = () => {
+  const spaceUsageDataSchema = readFileSync('graphql_schema/space_usage_schema.graphql', 'utf8');
+  registerDependency('spaceUsageDataSchema', spaceUsageDataSchema);
+
+  registerDependency('Client', Client);
+  registerDependency('SpaceUsage', SpaceUsage);
   registerDependency('Space', Space);
   registerDependencyFromFactory('spaceController', SpaceControllerFactory);
-  registerDependencyFromFactory('spaceRoutes', SpaceRoutesFactory);
-};
-
-const registerSpaceUsageRoutes = () => {
-  registerDependency('SpaceUsage', SpaceUsage);
-  registerDependencyFromFactory('spaceUsageController', SpaceUsageControllerFactory);
-  registerDependencyFromFactory('spaceUsageRoutes', SpaceUsageRoutesFactory);
-};
-
-const registerRoutes = () => {
-  registerSpaceRoutes();
-  registerSpaceUsageRoutes();
-
-  registerDependencyFromFactory('routes', RoutesFactory);
+  registerDependencyFromFactory('saveSpaceUsageController', SaveSpaceUsageControllerFactory);
+  registerDependencyFromFactory('getSpaceUsageController', GetSpaceUsageControllerFactory);
+  registerDependencyFromFactory('server', ServerFactory);
 };
 
 const wireUpApp = () => {
   setUpDiContainer();
 
-  registerRoutes();
+  registerSpaceUsageRoutes();
 
   return diContainer;
 };

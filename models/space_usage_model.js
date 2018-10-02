@@ -4,8 +4,8 @@ const { Schema } = mongoose;
 
 const SpaceUsageSchema = new Schema({
   spaceId: { type: String, required: true },
-  usagePeriodStartTime: { type: Date, required: true },
-  usagePeriodEndTime: { type: Date, required: true },
+  usagePeriodStartTime: { type: Number, required: true },
+  usagePeriodEndTime: { type: Number, required: true },
   numberOfPeopleRecorded: { type: Number, required: true },
 });
 

@@ -5,7 +5,7 @@ const config = {
       port: 3001,
     },
     spaceUsageDatabase: {
-      uri: 'mongodb://localhost:27017/space_usage_dev',
+      uri: 'mongodb://localhost:27018/space_usage_dev',
     },
     errorLogging: {
       environment: '',

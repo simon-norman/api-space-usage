@@ -51,7 +51,7 @@
     {
         "type": "node",
         "request": "launch",
-        "name": "Number of people in usage period calculator test",
+        "name": "Get space tests",
         "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
         "args": [
             "-u",
@@ -59,14 +59,14 @@
             "--timeout",
             "999999",
             "--colors",
-            "./{,!(node_modules)/**/}*no_people_in_usage_period_calculator_test.js"
+            "./{,!(node_modules)/**/}*get_spaces_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },
     {
         "type": "node",
         "request": "launch",
-        "name": "Space controller tests",
+        "name": "Save space usage test",
         "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
         "args": [
             "-u",
@@ -74,14 +74,14 @@
             "--timeout",
             "999999",
             "--colors",
-            "./{,!(node_modules)/**/}*space_controller_test.js"
+            "./{,!(node_modules)/**/}*save_space_usage_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },
     {
         "type": "node",
         "request": "launch",
-        "name": "Space usage controller tests",
+        "name": "Get space usage test",
         "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
         "args": [
             "-u",
@@ -89,22 +89,7 @@
             "--timeout",
             "999999",
             "--colors",
-            "./{,!(node_modules)/**/}*space_usage_controller_test.js"
-        ],
-        "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-        "type": "node",
-        "request": "launch",
-        "name": "Routes tests",
-        "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-        "args": [
-            "-u",
-            "tdd",
-            "--timeout",
-            "999999",
-            "--colors",
-            "./{,!(node_modules)/**/}*routes_test.js"
+            "./{,!(node_modules)/**/}*get_space_usage_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },
@@ -119,7 +104,7 @@
             "--timeout",
             "999999",
             "--colors",
-            "./{,!(node_modules)/**/}*space_usage_test.js"
+            "./{,!(node_modules)/**/}*space_usage_model_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },
@@ -134,7 +119,7 @@
             "--timeout",
             "999999",
             "--colors",
-            "./{,!(node_modules)/**/}*space_test.js"
+            "./{,!(node_modules)/**/}*space_model_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },
@@ -152,6 +137,13 @@
             "./{,!(node_modules)/**/}*config_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Launch graphql server",
+        "env": {"NODE_ENV": "development"},
+        "program": "${workspaceRoot}/server/server.js"
     },
     {
         "type": "node",
