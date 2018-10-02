@@ -49,14 +49,21 @@ module.exports = (Client, SpaceUsage) => {
   const resolvers = {
     Query: {
       SpaceUsagesBySiteId: async (_, query) => {
+        console.log('reached space usages controller');
         const siteIdAsMongoId = mongoose.Types.ObjectId(query.siteId);
 
+        console.log('about to get mongo query');
         const queryToGetSpaceIdsForSiteId = getMongoQueryToGetSpaceIdsForSiteId(siteIdAsMongoId);
+        console.log('about to get space ids');
         const siteWithAllSpaceIds = await Client.aggregate(queryToGetSpaceIdsForSiteId);
+        console.log('preparing to extract space ids from object');
+
         const spaceIdsForSite = siteWithAllSpaceIds[0].spaceIds;
 
+        console.log('preparing to find space usages');
         const spaceUsages = await SpaceUsage.find({ spaceId: { $in: spaceIdsForSite } });
 
+        console.log(spaceUsages);
         return spaceUsages;
       },
     },
