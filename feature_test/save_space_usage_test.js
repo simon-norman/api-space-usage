@@ -65,6 +65,16 @@ describe('Save space usage', () => {
     }}`;
   };
 
+  const getSavedMockUsageFromDbWithoutUnwantedMongoProps = async () => {
+    const allSavedSpaceUsages = await SpaceUsage.find({}, '', { lean: true });
+    const savedMockSpaceUsage = allSavedSpaceUsages[0];
+
+    savedMockSpaceUsage._id = savedMockSpaceUsage._id.toString();
+    delete savedMockSpaceUsage.__v;
+
+    return savedMockSpaceUsage;
+  };
+
   before(async () => {
     const config = getConfigForEnvironment(process.env.NODE_ENV);
     await mongoose.connect(config.spaceUsageDatabase.uri, { useNewUrlParser: true });
@@ -97,21 +107,11 @@ describe('Save space usage', () => {
       .send({
         query: createSpaceUsageMutationString,
       });
+    const returnedSavedSpaceUsage = response.body.data.CreateSpaceUsage;
 
-    const allSavedSpaceUsages = await SpaceUsage.find({});
-    const savedMockSpaceUsage = allSavedSpaceUsages[0];
+    const savedMockSpaceUsage = await getSavedMockUsageFromDbWithoutUnwantedMongoProps();
 
-    expect(response.body.data.CreateSpaceUsage._id).equals(savedMockSpaceUsage.id);
-    expect(response.body.data.CreateSpaceUsage.spaceId).equals(savedMockSpaceUsage.spaceId);
-
-    expect(response.body.data.CreateSpaceUsage.numberOfPeopleRecorded)
-      .equals(savedMockSpaceUsage.numberOfPeopleRecorded);
-
-    expect(response.body.data.CreateSpaceUsage.usagePeriodStartTime)
-      .equals(savedMockSpaceUsage.usagePeriodStartTime);
-
-    expect(response.body.data.CreateSpaceUsage.usagePeriodEndTime)
-      .equals(savedMockSpaceUsage.usagePeriodEndTime);
+    expect(returnedSavedSpaceUsage).deep.equals(savedMockSpaceUsage);
   });
 
   it('should return error if error thrown during save', async function () {
