@@ -49,6 +49,7 @@ describe('Save space usage', () => {
       usagePeriodEndTime: new Date('October 10, 2010 11:15:00').getTime(),
       usagePeriodStartTime: new Date('October 10, 2010 11:00:00').getTime(),
       numberOfPeopleRecorded: 3,
+      occupancy: 0.65,
     };
   };
 
@@ -62,6 +63,7 @@ describe('Save space usage', () => {
       usagePeriodStartTime
       usagePeriodEndTime
       numberOfPeopleRecorded
+      occupancy
     }}`;
   };
 
@@ -110,8 +112,10 @@ describe('Save space usage', () => {
     const returnedSavedSpaceUsage = response.body.data.CreateSpaceUsage;
 
     const savedMockSpaceUsage = await getSavedMockUsageFromDbWithoutUnwantedMongoProps();
-
     expect(returnedSavedSpaceUsage).deep.equals(savedMockSpaceUsage);
+
+    delete savedMockSpaceUsage._id;
+    expect(mockSpaceUsage).deep.equals(savedMockSpaceUsage);
   });
 
   it('should return error if error thrown during save', async function () {

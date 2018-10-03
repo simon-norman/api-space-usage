@@ -5,6 +5,7 @@
       usagePeriodStartTime: Float!
       usagePeriodEndTime: Float!
       numberOfPeopleRecorded: Int!
+      occupancy: Float!
     }
 
     input SpaceUsageInput {
@@ -12,6 +13,7 @@
       usagePeriodStartTime: Float!
       usagePeriodEndTime: Float!
       numberOfPeopleRecorded: Int!
+      occupancy: Float!
     }
 
     type Space {

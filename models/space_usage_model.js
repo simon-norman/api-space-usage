@@ -7,6 +7,7 @@ const SpaceUsageSchema = new Schema({
   usagePeriodStartTime: { type: Number, required: true },
   usagePeriodEndTime: { type: Number, required: true },
   numberOfPeopleRecorded: { type: Number, required: true },
+  occupancy: { type: Number, required: true },
 });
 
 const SpaceUsage = mongoose.model('Space_usage', SpaceUsageSchema);

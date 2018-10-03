@@ -88,6 +88,7 @@ describe('Get space usage', () => {
         usagePeriodStartTime: new Date('October 10, 2010 11:00:00').getTime(),
         usagePeriodEndTime: new Date('October 10, 2010 11:15:00').getTime(),
         numberOfPeopleRecorded: 5,
+        occupancy: 0.9,
       });
       spaceId += 1;
     }
@@ -121,6 +122,7 @@ describe('Get space usage', () => {
       usagePeriodStartTime
       usagePeriodEndTime
       numberOfPeopleRecorded
+      occupancy
     }}`;
   };
 
