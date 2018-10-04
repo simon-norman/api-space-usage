@@ -16,6 +16,14 @@
       occupancy: Float!
     }
 
+    type SpaceUsageAnalysisData {
+      spaceId: String!
+      spaceName: String!
+      usagePeriodStartTime: Float!
+      usagePeriodEndTime: Float!
+      occupancy: Float!     
+    }
+
     type Space {
       _id: String!
       name: String!

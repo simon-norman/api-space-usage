@@ -8,6 +8,7 @@ const Client = require('../models/client_model');
 const GetSpaceUsageControllerFactory = require('../controllers/get_space_usage_controller');
 const { GraphQLServer } = require('graphql-yoga');
 const SpaceUsage = require('../models/space_usage_model');
+const Space = require('../models/space_model');
 const { readFileSync } = require('fs');
 
 const { expect } = chai;
@@ -17,6 +18,7 @@ const sinonSandbox = sinon.sandbox.create();
 describe('Get space usage', () => {
   let spaceUsageApiInstance;
   let mockSiteId;
+  let mockSpaces;
   let mockSpaceUsages;
   let spaceUsagesExpectedToBeInResponse;
   let getSpaceUsageQueryString;
@@ -72,6 +74,13 @@ describe('Get space usage', () => {
     mockSiteId = savedMockClient.sites[1]._id;
   };
 
+  const ensureSpaceCollectionEmpty = async () => {
+    const spaceRecords = await Space.find({});
+    if (spaceRecords.length) {
+      await Space.collection.drop();
+    }
+  };
+
   const ensureSpaceUsageCollectionEmpty = async () => {
     const spaceUsageRecords = await SpaceUsage.find({});
     if (spaceUsageRecords.length) {
@@ -79,9 +88,26 @@ describe('Get space usage', () => {
     }
   };
 
+  const setUpMockSpaces = async () => {
+    mockSpaces = [];
+    let spaceId = 0;
+
+    for (let i = 1; i <= 4; i += 1) {
+      mockSpaces.push({
+        _id: spaceId.toString(),
+        name: `Space${spaceId}`,
+        occupancyCapacity: 5,
+      });
+      spaceId += 1;
+    }
+
+    await Space.insertMany(mockSpaces);
+  };
+
   const setUpMockSpaceUsages = async () => {
     mockSpaceUsages = [];
     let spaceId = 0;
+
     for (let i = 1; i <= 4; i += 1) {
       mockSpaceUsages.push({
         spaceId,
@@ -96,32 +122,57 @@ describe('Get space usage', () => {
     await SpaceUsage.insertMany(mockSpaceUsages);
   };
 
-  const convertMongoDocsToHttpResponseFormat = (mongoDocs) => {
+  const getSpaceUsagesJoinedWithSpaces = ({ spaceIds }) => SpaceUsage.aggregate([
+    { $match: { spaceId: { $in: spaceIds } } },
+    {
+      $lookup: {
+        from: 'spaces',
+        localField: 'spaceId',
+        foreignField: '_id',
+        as: 'spaceInfo',
+      },
+    },
+    {
+      $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ['$spaceInfo', 0] }, '$$ROOT'] } },
+    },
+    { $addFields: { spaceName: '$name' } },
+    {
+      $project: {
+        spaceInfo: 0, numberOfPeopleRecorded: 0, name: 0, __v: 0, occupancyCapacity: 0,
+      },
+    }]);
+
+  const convertMongoDocsToGraphQlResponse = (mongoDocs) => {
     const convertedMongoDocs = JSON.parse(JSON.stringify(mongoDocs));
     for (const convertedMongoDoc of convertedMongoDocs) {
       delete convertedMongoDoc.__v;
+      delete convertedMongoDoc._id;
     }
 
     return convertedMongoDocs;
   };
 
   const setUpSpaceUsagesExpectedToBeInResponse = async () => {
+    await ensureSpaceCollectionEmpty();
+
+    await setUpMockSpaces();
+
     await ensureSpaceUsageCollectionEmpty();
 
     await setUpMockSpaceUsages();
 
-    const savedSpaceUsages = await SpaceUsage.find({ spaceId: { $in: ['1', '2'] } });
+    const savedSpaceUsagesJoinedWithSpaces
+      = await getSpaceUsagesJoinedWithSpaces({ spaceIds: ['1', '2'] });
     spaceUsagesExpectedToBeInResponse
-      = convertMongoDocsToHttpResponseFormat(savedSpaceUsages);
+      = convertMongoDocsToGraphQlResponse(savedSpaceUsagesJoinedWithSpaces);
   };
 
   const setUpGetSpaceUsageQueryString = () => {
     getSpaceUsageQueryString = `{ SpaceUsagesBySiteId(siteId: "${mockSiteId}") {
-      _id
       spaceId
+      spaceName
       usagePeriodStartTime
       usagePeriodEndTime
-      numberOfPeopleRecorded
       occupancy
     }}`;
   };
