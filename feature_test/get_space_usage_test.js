@@ -18,15 +18,11 @@ const sinonSandbox = sinon.sandbox.create();
 describe('Get space usage', () => {
   let spaceUsageApiInstance;
   let mockSiteId;
-  let mockSpaces;
-  let mockSpaceUsages;
   let spaceUsagesExpectedToBeInResponse;
   let getSpaceUsageQueryString;
-  let typeDefs;
-  let resolvers;
 
   const setUpSpaceUsageApi = async () => {
-    ({ typeDefs, resolvers } = GetSpaceUsageControllerFactory(Client, SpaceUsage));
+    const { typeDefs, resolvers } = GetSpaceUsageControllerFactory(Client, SpaceUsage);
     const spaceUsageDataSchema = readFileSync('graphql_schema/space_usage_schema.graphql', 'utf8');
 
     const spaceUsageApi = new GraphQLServer({
@@ -41,39 +37,6 @@ describe('Get space usage', () => {
     request = request('http://localhost:4000');
   };
 
-  const ensureClientCollectionEmpty = async () => {
-    const clients = await Client.find({});
-    if (clients.length) {
-      await Client.collection.drop();
-    }
-  };
-
-  const setUpMockSites = async () => {
-    await ensureClientCollectionEmpty();
-
-    const mockClient = new Client({
-      name: 'ABC Inc',
-      sites: [
-        {
-          name: 'ABC site a',
-          floors: [
-            { name: 'Ground floor', spaceIds: ['5', '6'] },
-          ],
-        },
-        {
-          name: 'ABC site b',
-          floors: [
-            { name: 'Ground floor', spaceIds: ['1'] },
-            { name: 'First floor', spaceIds: ['2'] },
-          ],
-        },
-      ],
-    });
-    const savedMockClient = await mockClient.save();
-
-    mockSiteId = savedMockClient.sites[1]._id;
-  };
-
   const ensureSpaceCollectionEmpty = async () => {
     const spaceRecords = await Space.find({});
     if (spaceRecords.length) {
@@ -81,18 +44,13 @@ describe('Get space usage', () => {
     }
   };
 
-  const ensureSpaceUsageCollectionEmpty = async () => {
-    const spaceUsageRecords = await SpaceUsage.find({});
-    if (spaceUsageRecords.length) {
-      await SpaceUsage.collection.drop();
-    }
-  };
+  const setUpMockSpacesInDb = async ({ numberOfSpaces }) => {
+    await ensureSpaceCollectionEmpty();
 
-  const setUpMockSpaces = async () => {
-    mockSpaces = [];
+    const mockSpaces = [];
     let spaceId = 0;
 
-    for (let i = 1; i <= 4; i += 1) {
+    for (let i = 1; i <= numberOfSpaces; i += 1) {
       mockSpaces.push({
         _id: spaceId.toString(),
         name: `Space${spaceId}`,
@@ -102,24 +60,66 @@ describe('Get space usage', () => {
     }
 
     await Space.insertMany(mockSpaces);
+    return mockSpaces;
   };
 
-  const setUpMockSpaceUsages = async () => {
-    mockSpaceUsages = [];
-    let spaceId = 0;
+  const ensureClientCollectionEmpty = async () => {
+    const clients = await Client.find({});
+    if (clients.length) {
+      await Client.collection.drop();
+    }
+  };
 
-    for (let i = 1; i <= 4; i += 1) {
+  const setUpMockSitesInDb = async (site1MockSpaceIds, site2MockSpaceIds) => {
+    await ensureClientCollectionEmpty();
+
+    const mockClient = new Client({
+      name: 'ABC Inc',
+      sites: [
+        {
+          name: 'ABC site a',
+          floors: [
+            { name: 'Ground floor', spaceIds: site1MockSpaceIds },
+          ],
+        },
+        {
+          name: 'ABC site b',
+          floors: [
+            { name: 'Ground floor', spaceIds: site2MockSpaceIds[0] },
+            { name: 'First floor', spaceIds: site2MockSpaceIds[1] },
+          ],
+        },
+      ],
+    });
+    const savedMockClient = await mockClient.save();
+
+    mockSiteId = savedMockClient.sites[1]._id;
+  };
+
+  const ensureSpaceUsageCollectionEmpty = async () => {
+    const spaceUsageRecords = await SpaceUsage.find({});
+    if (spaceUsageRecords.length) {
+      await SpaceUsage.collection.drop();
+    }
+  };
+
+  const setUpMockSpaceUsagesInDb = async (mockSpaces) => {
+    await ensureSpaceUsageCollectionEmpty();
+
+    const mockSpaceUsages = [];
+
+    for (const mockSpace of mockSpaces) {
       mockSpaceUsages.push({
-        spaceId,
+        spaceId: mockSpace._id,
         usagePeriodStartTime: new Date('October 10, 2010 11:00:00').getTime(),
         usagePeriodEndTime: new Date('October 10, 2010 11:15:00').getTime(),
         numberOfPeopleRecorded: 5,
         occupancy: 0.9,
       });
-      spaceId += 1;
     }
 
-    await SpaceUsage.insertMany(mockSpaceUsages);
+    const mockSavedSpaceUsages = await SpaceUsage.insertMany(mockSpaceUsages);
+    return mockSavedSpaceUsages;
   };
 
   const getSpaceUsagesJoinedWithSpaces = ({ spaceIds }) => SpaceUsage.aggregate([
@@ -152,17 +152,10 @@ describe('Get space usage', () => {
     return convertedMongoDocs;
   };
 
-  const setUpSpaceUsagesExpectedToBeInResponse = async () => {
-    await ensureSpaceCollectionEmpty();
-
-    await setUpMockSpaces();
-
-    await ensureSpaceUsageCollectionEmpty();
-
-    await setUpMockSpaceUsages();
-
+  const setUpSpaceUsagesExpectedToBeInResponse = async (spaceIds) => {
     const savedSpaceUsagesJoinedWithSpaces
-      = await getSpaceUsagesJoinedWithSpaces({ spaceIds: ['1', '2'] });
+      = await getSpaceUsagesJoinedWithSpaces({ spaceIds });
+
     spaceUsagesExpectedToBeInResponse
       = convertMongoDocsToGraphQlResponse(savedSpaceUsagesJoinedWithSpaces);
   };
@@ -185,9 +178,15 @@ describe('Get space usage', () => {
   });
 
   beforeEach(async () => {
-    await setUpMockSites();
+    const mockSpaces = await setUpMockSpacesInDb({ numberOfSpaces: 4 });
+    const site1MockSpaceIds = [mockSpaces[0]._id, mockSpaces[1]._id];
+    const site2MockSpaceIds = [mockSpaces[2]._id, mockSpaces[3]._id];
 
-    await setUpSpaceUsagesExpectedToBeInResponse();
+    await setUpMockSitesInDb(site1MockSpaceIds, site2MockSpaceIds);
+
+    await setUpMockSpaceUsagesInDb(mockSpaces);
+
+    await setUpSpaceUsagesExpectedToBeInResponse(site2MockSpaceIds);
 
     setUpGetSpaceUsageQueryString();
   });
