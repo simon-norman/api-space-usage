@@ -73,16 +73,19 @@ describe('Get space usage', () => {
   const setUpMockSitesInDb = async (site1MockSpaceIds, site2MockSpaceIds) => {
     await ensureClientCollectionEmpty();
 
+    mockSiteId = '1029';
     const mockClient = new Client({
       name: 'ABC Inc',
       sites: [
         {
+          _id: '2004',
           name: 'ABC site a',
           floors: [
             { name: 'Ground floor', spaceIds: site1MockSpaceIds },
           ],
         },
         {
+          _id: mockSiteId,
           name: 'ABC site b',
           floors: [
             { name: 'Ground floor', spaceIds: site2MockSpaceIds[0] },
@@ -91,9 +94,7 @@ describe('Get space usage', () => {
         },
       ],
     });
-    const savedMockClient = await mockClient.save();
-
-    mockSiteId = savedMockClient.sites[1]._id;
+    await mockClient.save();
   };
 
   const ensureSpaceUsageCollectionEmpty = async () => {

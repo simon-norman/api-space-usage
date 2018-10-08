@@ -10,6 +10,7 @@ const FloorSchema = new Schema({
 });
 
 const SiteSchema = new Schema({
+  _id: { type: String, required: true },
   name: { type: String, required: true },
   floors: [FloorSchema],
 });

@@ -1,5 +1,3 @@
-const mongoose = require('mongoose');
-
 
 module.exports = (Client, SpaceUsage) => {
   const typeDefs = `
@@ -45,12 +43,10 @@ module.exports = (Client, SpaceUsage) => {
   ];
 
   const getAllSpaceIdsForSite = async (siteId) => {
-    const siteIdAsMongoId = mongoose.Types.ObjectId(siteId);
-
     const mongoQueryToGetSpaceIdsForSpecificSite = [
-      ...getMongoStagesToFilterClientsBySiteId(siteIdAsMongoId),
+      ...getMongoStagesToFilterClientsBySiteId(siteId),
       ...mongoStagesToUnwindNestedSitesFloors,
-      ...getMongoStagesToFilterSitesBySiteId(siteIdAsMongoId),
+      ...getMongoStagesToFilterSitesBySiteId(siteId),
       ...mongoStagesToGroupSpaceIdsFromClientsIntoOneDoc,
     ];
 
