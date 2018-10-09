@@ -50,19 +50,6 @@ describe('space_usage', () => {
     mongoose.connection.close();
   });
 
-  it('should save space usage when validation is successful', async function () {
-    const spaceUsage = new SpaceUsage(mockSpaceUsage);
-    const savedSpaceUsage = await spaceUsage.save();
-
-    expect(savedSpaceUsage.usagePeriodStartTime)
-      .to.equal(mockSpaceUsage.usagePeriodStartTime);
-    expect(savedSpaceUsage.usagePeriodEndTime)
-      .to.equal(mockSpaceUsage.usagePeriodEndTime);
-
-    expect(savedSpaceUsage.spaceId).to.equal(mockSpaceUsage.spaceId);
-    expect(savedSpaceUsage.numberOfPeopleRecorded).to.equal(mockSpaceUsage.numberOfPeopleRecorded);
-  });
-
   it('should reject save if space id not provided', async function () {
     mockSpaceUsage.spaceId = '';
     const wasErrorThrown = await doesSaveSpaceUsageThrowError();
