@@ -1,9 +1,6 @@
 
 const config = {
   development: {
-    webServer: {
-      port: 3001,
-    },
     spaceUsageDatabase: {
       uri: 'mongodb://localhost:27018/space_usage_dev',
     },
