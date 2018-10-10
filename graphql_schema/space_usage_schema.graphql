@@ -21,6 +21,7 @@
       spaceName: String!
       usagePeriodStartTime: Float!
       usagePeriodEndTime: Float!
+      numberOfPeopleRecorded: Int!
       occupancy: Float!     
     }
 

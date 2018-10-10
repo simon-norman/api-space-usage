@@ -139,7 +139,7 @@ describe('Get space usage', () => {
     { $addFields: { spaceName: '$name' } },
     {
       $project: {
-        spaceInfo: 0, numberOfPeopleRecorded: 0, name: 0, __v: 0, occupancyCapacity: 0,
+        spaceInfo: 0, name: 0, __v: 0, occupancyCapacity: 0,
       },
     }]);
 
@@ -168,6 +168,7 @@ describe('Get space usage', () => {
       usagePeriodStartTime
       usagePeriodEndTime
       occupancy
+      numberOfPeopleRecorded
     }}`;
   };
 

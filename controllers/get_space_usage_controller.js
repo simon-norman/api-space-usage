@@ -68,7 +68,7 @@ module.exports = (Client, SpaceUsage) => {
         $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ['$spaceInfo', 0] }, '$$ROOT'] } },
       },
       { $addFields: { spaceName: '$name' } },
-      { $project: { spaceInfo: 0, numberOfPeopleRecorded: 0, name: 0 } }]));
+      { $project: { spaceInfo: 0, name: 0 } }]));
 
   const resolvers = {
     Query: {
