@@ -6,6 +6,7 @@ const SpaceSchema = new Schema({
   _id: { type: String, required: true },
   name: { type: String, required: true },
   occupancyCapacity: { type: Number, required: true },
+  category: { type: String, required: true },
 });
 
 const Space = mongoose.model('Space', SpaceSchema);

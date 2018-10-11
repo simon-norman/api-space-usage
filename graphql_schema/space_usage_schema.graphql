@@ -19,6 +19,7 @@
     type SpaceUsageAnalysisData {
       spaceId: String!
       spaceName: String!
+      spaceCategory: String!
       usagePeriodStartTime: Float!
       usagePeriodEndTime: Float!
       numberOfPeopleRecorded: Int!

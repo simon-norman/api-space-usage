@@ -54,6 +54,7 @@ describe('Get space usage', () => {
       mockSpaces.push({
         _id: spaceId.toString(),
         name: `Space${spaceId}`,
+        category: 'Meeting room',
         occupancyCapacity: 5,
       });
       spaceId += 1;
@@ -136,10 +137,10 @@ describe('Get space usage', () => {
     {
       $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ['$spaceInfo', 0] }, '$$ROOT'] } },
     },
-    { $addFields: { spaceName: '$name' } },
+    { $addFields: { spaceName: '$name', spaceCategory: '$category' } },
     {
       $project: {
-        spaceInfo: 0, name: 0, __v: 0, occupancyCapacity: 0,
+        spaceInfo: 0, name: 0, category: 0, __v: 0, occupancyCapacity: 0,
       },
     }]);
 
@@ -165,6 +166,7 @@ describe('Get space usage', () => {
     getSpaceUsageQueryString = `{ SpaceUsagesBySiteId(siteId: "${mockSiteId}") {
       spaceId
       spaceName
+      spaceCategory
       usagePeriodStartTime
       usagePeriodEndTime
       occupancy
