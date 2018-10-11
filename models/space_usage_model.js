@@ -10,6 +10,6 @@ const SpaceUsageSchema = new Schema({
   occupancy: { type: Number, required: true },
 });
 
-const SpaceUsage = mongoose.model('Space_usage', SpaceUsageSchema);
+const SpaceUsage = mongoose.model('SpaceUsage', SpaceUsageSchema);
 
 module.exports = SpaceUsage;

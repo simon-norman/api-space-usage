@@ -37,15 +37,16 @@ describe('Get space usage', () => {
     request = request('http://localhost:4000');
   };
 
-  const ensureSpaceCollectionEmpty = async () => {
-    const spaceRecords = await Space.find({});
-    if (spaceRecords.length) {
-      await Space.collection.drop();
+  const ensureCollectionEmpty = async (collectionName) => {
+    const model = mongoose.model(collectionName);
+    const collectionRecords = await model.find({});
+    if (collectionRecords.length) {
+      await model.collection.drop();
     }
   };
 
   const setUpMockSpacesInDb = async ({ numberOfSpaces }) => {
-    await ensureSpaceCollectionEmpty();
+    await ensureCollectionEmpty('Space');
 
     const mockSpaces = [];
     let spaceId = 0;
@@ -64,15 +65,8 @@ describe('Get space usage', () => {
     return mockSpaces;
   };
 
-  const ensureClientCollectionEmpty = async () => {
-    const clients = await Client.find({});
-    if (clients.length) {
-      await Client.collection.drop();
-    }
-  };
-
   const setUpMockSitesInDb = async (site1MockSpaceIds, site2MockSpaceIds) => {
-    await ensureClientCollectionEmpty();
+    await ensureCollectionEmpty('Client');
 
     mockSiteId = '1029';
     const mockClient = new Client({
@@ -98,15 +92,8 @@ describe('Get space usage', () => {
     await mockClient.save();
   };
 
-  const ensureSpaceUsageCollectionEmpty = async () => {
-    const spaceUsageRecords = await SpaceUsage.find({});
-    if (spaceUsageRecords.length) {
-      await SpaceUsage.collection.drop();
-    }
-  };
-
   const setUpMockSpaceUsagesInDb = async (mockSpaces) => {
-    await ensureSpaceUsageCollectionEmpty();
+    await ensureCollectionEmpty('SpaceUsage');
 
     const mockSpaceUsages = [];
 
