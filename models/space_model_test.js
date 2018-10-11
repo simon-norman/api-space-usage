@@ -37,6 +37,7 @@ describe('space', () => {
     mockSpace = {
       _id: '1AD',
       name: 'Meeting room 1',
+      category: 'Meeting room',
       occupancyCapacity: 8,
     };
   });
@@ -52,6 +53,7 @@ describe('space', () => {
 
     expect(savedSpace._id).to.equal(mockSpace._id);
     expect(savedSpace.name).to.equal(mockSpace.name);
+    expect(savedSpace.category).to.equal(mockSpace.category);
     expect(savedSpace.occupancyCapacity).to.equal(mockSpace.occupancyCapacity);
     expect(savedSpace.siteId).to.equal(mockSpace.siteId);
   });
