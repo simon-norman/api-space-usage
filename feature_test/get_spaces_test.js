@@ -49,7 +49,8 @@ describe('Get spaces', () => {
     for (let spaceId = 1; spaceId <= 2; spaceId += 1) {
       mockSpaces.push({
         _id: spaceId.toString(),
-        name: 'meeting room',
+        category: 'Meeting room',
+        name: `Meeting room ${spaceId}`,
         occupancyCapacity: 3,
       });
     }
@@ -80,6 +81,7 @@ describe('Get spaces', () => {
     getSpacesQueryString = `{ GetAllSpaces {
       _id
       name
+      category
       occupancyCapacity
     }}`;
   };

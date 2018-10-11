@@ -29,5 +29,6 @@
     type Space {
       _id: String!
       name: String!
+      category: String!
       occupancyCapacity: Int!
     }
