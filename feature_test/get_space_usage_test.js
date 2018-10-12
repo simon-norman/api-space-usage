@@ -10,14 +10,18 @@ const SpaceUsage = require('../models/space_usage_model');
 const Space = require('../models/space_model');
 const setUpSpaceUsageApiTestInstance = require('./space_usage_api_test_instance_factory');
 const ensureCollectionEmpty = require('./helpers/mongo_collection_drop');
+const setUpTestClient = require('./test_data_factories/client_test_data_factory');
+const setUpTestSpaceUsagesInDb = require('./test_data_factories/space_usage_test_data_factory');
 
 const { expect } = chai;
 const sinonSandbox = sinon.sandbox.create();
 
 
-describe('Get space usage', () => {
+describe('Consumer requests space usage data,', () => {
   let spaceUsageApiInstance;
   let mockSiteId;
+  let mockDayStartTime;
+  let mockDayEndTime;
   let spaceUsagesExpectedToBeInResponse;
   let getSpaceUsageQueryString;
 
@@ -41,30 +45,16 @@ describe('Get space usage', () => {
     return mockSpaces;
   };
 
-  const setUpMockSitesInDb = async (site1MockSpaceIds, site2MockSpaceIds) => {
+  const setUpMockSitesInDb = async (site1MockSpaceIds, site2GroundFloorMockSpaceIds, site2FirstFloorMockSpaceIds) => {
     await ensureCollectionEmpty(Client);
 
-    mockSiteId = '1029';
-    const mockClient = new Client({
-      name: 'ABC Inc',
-      sites: [
-        {
-          _id: '2004',
-          name: 'ABC site a',
-          floors: [
-            { name: 'Ground floor', spaceIds: site1MockSpaceIds },
-          ],
-        },
-        {
-          _id: mockSiteId,
-          name: 'ABC site b',
-          floors: [
-            { name: 'Ground floor', spaceIds: site2MockSpaceIds[0] },
-            { name: 'First floor', spaceIds: site2MockSpaceIds[1] },
-          ],
-        },
-      ],
-    });
+    const mockClient = new Client(setUpTestClient({
+      site1MockSpaceIds,
+      site2GroundFloorMockSpaceIds,
+      site2FirstFloorMockSpaceIds,
+    }));
+
+    mockSiteId = 2;
     await mockClient.save();
   };
 
@@ -73,11 +63,17 @@ describe('Get space usage', () => {
 
     const mockSpaceUsages = [];
 
-    for (const mockSpace of mockSpaces) {
+    for (const index of mockSpaces.keys()) {
+      const usagePeriodStartHour = Math.ceil((24 / mockSpaces.length) * (index + 1));
+      const usagePeriodStartTime = new Date(`October 10, 2010 ${usagePeriodStartHour}:00:00`).getTime();
+
+      const mockSpace = mockSpaces[index];
+
+      const fifteenMinsInMilSecs = 15 * 60 * 1000;
       mockSpaceUsages.push({
         spaceId: mockSpace._id,
-        usagePeriodStartTime: new Date('October 10, 2010 11:00:00').getTime(),
-        usagePeriodEndTime: new Date('October 10, 2010 11:15:00').getTime(),
+        usagePeriodStartTime,
+        usagePeriodEndTime: usagePeriodStartTime + fifteenMinsInMilSecs,
         numberOfPeopleRecorded: 5,
         occupancy: 0.9,
       });
@@ -97,6 +93,23 @@ describe('Get space usage', () => {
         as: 'spaceInfo',
       },
     },
+    {
+      $addFields: {
+        usagePeriodStartTimeWithOnlyTime: {
+          $dateToString: {
+            date: '$usagePeriodStartTime',
+            format: '%H:%M:%S:%L',
+          },
+        },
+        usagePeriodEndTimeWithOnlyTime: {
+          $dateToString: {
+            date: '$usagePeriodEndTime',
+            format: '%H:%M:%S:%L',
+          },
+        },
+      },
+    },
+    { $match: { usagePeriodStartTimeWithOnlyTime: { $gte: mockDayStartTime }, usagePeriodEndTimeWithOnlyTime: { $lte: mockDayEndTime } } },
     {
       $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ['$spaceInfo', 0] }, '$$ROOT'] } },
     },
@@ -126,7 +139,14 @@ describe('Get space usage', () => {
   };
 
   const setUpGetSpaceUsageQueryString = () => {
-    getSpaceUsageQueryString = `{ SpaceUsagesBySiteId(siteId: "${mockSiteId}") {
+    mockDayStartTime = '08:00:00 GMT';
+    mockDayEndTime = '18:00:00 GMT';
+
+    getSpaceUsageQueryString = `{ SpaceUsagesBySiteId(
+      siteId: "${mockSiteId}",
+      dayStartTime: "${mockDayStartTime}",
+      dayEndTime: "${mockDayEndTime}"
+      ) {
       spaceId
       spaceName
       spaceCategory
@@ -154,11 +174,11 @@ describe('Get space usage', () => {
 
     await setUpMockSitesInDb(site1MockSpaceIds, site2MockSpaceIds);
 
-    await setUpMockSpaceUsagesInDb(mockSpaces);
-
-    await setUpSpaceUsagesExpectedToBeInResponse(site2MockSpaceIds);
+    await setUpTestSpaceUsagesInDb({ mockSpaces });
 
     setUpGetSpaceUsageQueryString();
+
+    await setUpSpaceUsagesExpectedToBeInResponse(site2MockSpaceIds);
   });
 
   afterEach(() => {
@@ -170,29 +190,31 @@ describe('Get space usage', () => {
     await mongoose.connection.close();
   });
 
-  it('should retrieve all space usages for a given site id', async function () {
-    const response = await request
-      .post('/')
-      .send({
-        query: getSpaceUsageQueryString,
-      });
+  context('given that the consumer has specified a valid siteId, dayStartTime, and dayEndTime (times as date strings)', async function () {
+    it('should retrieve all space usages for that site id and timeframe', async function () {
+      const response = await request
+        .post('/')
+        .send({
+          query: getSpaceUsageQueryString,
+        });
 
-    expect(response.body.data.SpaceUsagesBySiteId)
-      .deep.equals(spaceUsagesExpectedToBeInResponse);
-  });
+      expect(response.body.data.SpaceUsagesBySiteId)
+        .deep.equals(spaceUsagesExpectedToBeInResponse);
+    });
 
-  it('should return error if error thrown during get', async function () {
-    const stubbedAggregate = sinonSandbox.stub(Client, 'aggregate');
-    const errorMessage = 'error message';
-    stubbedAggregate.throws(new Error(errorMessage));
+    it('should return error if error thrown during get', async function () {
+      const stubbedAggregate = sinonSandbox.stub(Client, 'aggregate');
+      const errorMessage = 'error message';
+      stubbedAggregate.throws(new Error(errorMessage));
 
-    const response = await request
-      .post('/')
-      .send({
-        query: getSpaceUsageQueryString,
-      });
+      const response = await request
+        .post('/')
+        .send({
+          query: getSpaceUsageQueryString,
+        });
 
-    expect(response.body.errors[0].message).equals(errorMessage);
+      expect(response.body.errors[0].message).equals(errorMessage);
+    });
   });
 });
 
