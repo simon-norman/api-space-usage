@@ -6,10 +6,10 @@ const sinon = require('sinon');
 const mongoose = require('mongoose');
 const Client = require('../models/client_model');
 const GetSpaceUsageControllerFactory = require('../controllers/get_space_usage_controller');
-const { GraphQLServer } = require('graphql-yoga');
 const SpaceUsage = require('../models/space_usage_model');
 const Space = require('../models/space_model');
-const { readFileSync } = require('fs');
+const setUpSpaceUsageApiTestInstance = require('./space_usage_api_test_instance_factory');
+const ensureCollectionEmpty = require('./helpers/mongo_collection_drop');
 
 const { expect } = chai;
 const sinonSandbox = sinon.sandbox.create();
@@ -21,32 +21,8 @@ describe('Get space usage', () => {
   let spaceUsagesExpectedToBeInResponse;
   let getSpaceUsageQueryString;
 
-  const setUpSpaceUsageApi = async () => {
-    const { typeDefs, resolvers } = GetSpaceUsageControllerFactory(Client, SpaceUsage);
-    const spaceUsageDataSchema = readFileSync('graphql_schema/space_usage_schema.graphql', 'utf8');
-
-    const spaceUsageApi = new GraphQLServer({
-      typeDefs: [spaceUsageDataSchema, typeDefs],
-      resolvers,
-    });
-
-    spaceUsageApiInstance = await spaceUsageApi.start({
-      debug: false,
-    });
-
-    request = request('http://localhost:4000');
-  };
-
-  const ensureCollectionEmpty = async (collectionName) => {
-    const model = mongoose.model(collectionName);
-    const collectionRecords = await model.find({});
-    if (collectionRecords.length) {
-      await model.collection.drop();
-    }
-  };
-
   const setUpMockSpacesInDb = async ({ numberOfSpaces }) => {
-    await ensureCollectionEmpty('Space');
+    await ensureCollectionEmpty(Space);
 
     const mockSpaces = [];
     let spaceId = 0;
@@ -66,7 +42,7 @@ describe('Get space usage', () => {
   };
 
   const setUpMockSitesInDb = async (site1MockSpaceIds, site2MockSpaceIds) => {
-    await ensureCollectionEmpty('Client');
+    await ensureCollectionEmpty(Client);
 
     mockSiteId = '1029';
     const mockClient = new Client({
@@ -93,7 +69,7 @@ describe('Get space usage', () => {
   };
 
   const setUpMockSpaceUsagesInDb = async (mockSpaces) => {
-    await ensureCollectionEmpty('SpaceUsage');
+    await ensureCollectionEmpty(SpaceUsage);
 
     const mockSpaceUsages = [];
 
@@ -165,7 +141,10 @@ describe('Get space usage', () => {
     const config = getConfigForEnvironment(process.env.NODE_ENV);
     await mongoose.connect(config.spaceUsageDatabase.uri, { useNewUrlParser: true });
 
-    await setUpSpaceUsageApi();
+    ({ request, spaceUsageApiInstance } = await setUpSpaceUsageApiTestInstance({
+      controllerFactory: GetSpaceUsageControllerFactory,
+      controllerFactoryDependencies: [Client, SpaceUsage],
+    }));
   });
 
   beforeEach(async () => {

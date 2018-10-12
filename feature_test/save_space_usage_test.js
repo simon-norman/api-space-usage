@@ -5,9 +5,9 @@ let request = require('supertest');
 const sinon = require('sinon');
 const mongoose = require('mongoose');
 const SaveSpaceUsageControllerFactory = require('../controllers/save_space_usage_controller');
-const { GraphQLServer } = require('graphql-yoga');
 const SpaceUsage = require('../models/space_usage_model');
-const { readFileSync } = require('fs');
+const setUpSpaceUsageApiTestInstance = require('./space_usage_api_test_instance_factory');
+const ensureCollectionEmpty = require('./helpers/mongo_collection_drop');
 
 const { expect } = chai;
 
@@ -18,30 +18,6 @@ describe('Save space usage', () => {
   let spaceUsageApiInstance;
   let mockSpaceUsage;
   let createSpaceUsageMutationString;
-  let typeDefs;
-  let resolvers;
-
-  const setUpSpaceUsageApi = async () => {
-    ({ typeDefs, resolvers } = SaveSpaceUsageControllerFactory(SpaceUsage));
-
-    const spaceUsageDataSchema = readFileSync('graphql_schema/space_usage_schema.graphql', 'utf8');
-
-    const spaceUsageApi = new GraphQLServer({
-      typeDefs: [spaceUsageDataSchema, typeDefs],
-      resolvers,
-    });
-
-    spaceUsageApiInstance = await spaceUsageApi.start({
-      debug: false,
-    });
-  };
-
-  const ensureSpaceUsageCollectionEmpty = async () => {
-    const spaceUsageRecords = await SpaceUsage.find({});
-    if (spaceUsageRecords.length) {
-      await SpaceUsage.collection.drop();
-    }
-  };
 
   const setUpMockSpaceUsage = () => {
     mockSpaceUsage = {
@@ -81,13 +57,14 @@ describe('Save space usage', () => {
     const config = getConfigForEnvironment(process.env.NODE_ENV);
     await mongoose.connect(config.spaceUsageDatabase.uri, { useNewUrlParser: true });
 
-    await setUpSpaceUsageApi();
-
-    request = request('http://localhost:4000');
+    ({ request, spaceUsageApiInstance } = await setUpSpaceUsageApiTestInstance({
+      controllerFactory: SaveSpaceUsageControllerFactory,
+      controllerFactoryDependencies: [SpaceUsage],
+    }));
   });
 
   beforeEach(async () => {
-    await ensureSpaceUsageCollectionEmpty();
+    await ensureCollectionEmpty(SpaceUsage);
 
     setUpMockSpaceUsage();
 
