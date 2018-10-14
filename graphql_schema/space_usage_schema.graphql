@@ -16,7 +16,7 @@
       occupancy: Float!
     }
 
-    type SpaceUsageAnalysisData {
+    type SpaceUsagesWithSpaceInfo {
       spaceId: String!
       spaceName: String!
       spaceCategory: String!

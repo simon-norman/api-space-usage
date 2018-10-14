@@ -1,17 +1,28 @@
 const { readFileSync } = require('fs');
 const { GraphQLServer } = require('graphql-yoga');
+const { getConfigForEnvironment } = require('../config/config.js');
+const mongoose = require('mongoose');
 let request = require('supertest');
 
-const setUpSpaceUsageApiTestInstance = async ({
-  controllerFactory, controllerFactoryDependencies,
-}) => {
+const connectToSpaceUsageDb = async () => {
+  const config = getConfigForEnvironment(process.env.NODE_ENV);
+  await mongoose.connect(config.spaceUsageDatabase.uri, { useNewUrlParser: true });
+};
+
+const setUpSpaceUsageApi = ({ controllerFactory, controllerFactoryDependencies }) => {
   const { typeDefs, resolvers } = controllerFactory(...controllerFactoryDependencies);
   const spaceUsageDataSchema = readFileSync('graphql_schema/space_usage_schema.graphql', 'utf8');
 
-  const spaceUsageApi = new GraphQLServer({
+  return new GraphQLServer({
     typeDefs: [spaceUsageDataSchema, typeDefs],
     resolvers,
   });
+};
+
+const setUpSpaceUsageApiTestInstance = async (controllerParams) => {
+  await connectToSpaceUsageDb();
+
+  const spaceUsageApi = setUpSpaceUsageApi(controllerParams);
 
   const spaceUsageApiInstance = await spaceUsageApi.start({
     debug: false,

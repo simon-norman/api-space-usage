@@ -2,11 +2,15 @@
 module.exports = (Client, SpaceUsage) => {
   const typeDefs = `
     type Query {
-      SpaceUsagesBySiteId(siteId: String): [SpaceUsageAnalysisData!]!
+      SpaceUsagesWithSpaceInfo(
+        siteId: String,
+        dayStartTime: String,
+        dayEndTime: String
+        ): [SpaceUsagesWithSpaceInfo!]!
     }
   `;
 
-  const getMongoStagesToFilterClientsBySiteId = siteIdAsMongoId => [
+  const getMongoStagesToFilterDocsBySiteId = siteIdAsMongoId => [
     {
       $match: {
         'sites._id': siteIdAsMongoId,
@@ -17,14 +21,6 @@ module.exports = (Client, SpaceUsage) => {
   const mongoStagesToUnwindNestedSitesFloors = [
     { $unwind: '$sites' },
     { $unwind: '$sites.floors' },
-  ];
-
-  const getMongoStagesToFilterSitesBySiteId = siteIdAsMongoId => [
-    {
-      $match: {
-        'sites._id': siteIdAsMongoId,
-      },
-    },
   ];
 
   const mongoStagesToGroupSpaceIdsFromClientsIntoOneDoc = [
@@ -44,9 +40,10 @@ module.exports = (Client, SpaceUsage) => {
 
   const getAllSpaceIdsForSite = async (siteId) => {
     const mongoQueryToGetSpaceIdsForSpecificSite = [
-      ...getMongoStagesToFilterClientsBySiteId(siteId),
+      ...getMongoStagesToFilterDocsBySiteId(siteId),
       ...mongoStagesToUnwindNestedSitesFloors,
-      ...getMongoStagesToFilterSitesBySiteId(siteId),
+      // First filter out clients by site id, then the unwound sites by site id
+      ...getMongoStagesToFilterDocsBySiteId(siteId),
       ...mongoStagesToGroupSpaceIdsFromClientsIntoOneDoc,
     ];
 
@@ -54,29 +51,81 @@ module.exports = (Client, SpaceUsage) => {
     return siteWithAllSpaceIds;
   };
 
-  const getSpaceUsagesJoinedWithSpaces = async spaceIds =>
-    SpaceUsage.aggregate(([{ $match: { spaceId: { $in: spaceIds } } },
-      {
-        $lookup: {
-          from: 'spaces',
-          localField: 'spaceId',
-          foreignField: '_id',
-          as: 'spaceInfo',
+  const getMongoStagesToFilterSpaceUsagesByUsagePeriod = (dayStartTime, dayEndTime) => [
+    {
+      $addFields: {
+        usagePeriodStartTimeWithOnlyTime: {
+          $dateToString: { date: '$usagePeriodStartTime', format: '%H:%M:%S:%L' },
+        },
+        usagePeriodEndTimeWithOnlyTime: {
+          $dateToString: { date: '$usagePeriodEndTime', format: '%H:%M:%S:%L' },
         },
       },
-      {
-        $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ['$spaceInfo', 0] }, '$$ROOT'] } },
+    },
+    {
+      $match: {
+        usagePeriodStartTimeWithOnlyTime: { $gte: dayStartTime, $lte: dayEndTime },
+        usagePeriodEndTimeWithOnlyTime: { $gte: dayStartTime, $lte: dayEndTime },
       },
-      { $addFields: { spaceName: '$name', spaceCategory: '$category' } },
-      { $project: { spaceInfo: 0, name: 0, category: 0 } }]));
+    },
+  ];
+
+  const getMongoStagesToGetJoinedSpaceAndSpaceUsages = spaceIds => [
+    { $match: { spaceId: { $in: spaceIds } } },
+    {
+      $lookup: {
+        from: 'spaces',
+        localField: 'spaceId',
+        foreignField: '_id',
+        as: 'spaceInfo',
+      },
+    },
+  ];
+
+  const mongoStagesToMoveSpaceInfoToRootOfDocs = [
+    {
+      $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ['$spaceInfo', 0] }, '$$ROOT'] } },
+    },
+    { $addFields: { spaceName: '$name', spaceCategory: '$category' } },
+  ];
+
+  const mongoStagesToRemoveUnwantedSpaceUsageSpaceInfoData = [
+    {
+      $project: {
+        spaceInfo: 0,
+        name: 0,
+        category: 0,
+        usagePeriodStartTimeWithOnlyTime: 0,
+        usagePeriodEndTimeWithOnlyTime: 0,
+      },
+    },
+  ];
+
+  const getSpaceUsageAnalysisDataBySpaceIdsAndUsagePeriod
+    = async (spaceIds, dayStartTime, dayEndTime) => {
+      const mongoQueryToGetSpaceUsageAnalysisData = [
+        ...getMongoStagesToFilterSpaceUsagesByUsagePeriod(dayStartTime, dayEndTime),
+        ...getMongoStagesToGetJoinedSpaceAndSpaceUsages(spaceIds),
+        ...mongoStagesToMoveSpaceInfoToRootOfDocs,
+        ...mongoStagesToRemoveUnwantedSpaceUsageSpaceInfoData,
+      ];
+
+      const siteWithAllSpaceIds = await SpaceUsage.aggregate(mongoQueryToGetSpaceUsageAnalysisData);
+      return siteWithAllSpaceIds;
+    };
 
   const resolvers = {
     Query: {
-      SpaceUsagesBySiteId: async (_, query) => {
+      SpaceUsagesWithSpaceInfo: async (_, query) => {
         const siteWithAllSpaceIds = await getAllSpaceIdsForSite(query.siteId);
         const spaceIdsForSite = siteWithAllSpaceIds[0].spaceIds;
 
-        const spaceUsagesJoinedWithSpaces = await getSpaceUsagesJoinedWithSpaces(spaceIdsForSite);
+        const spaceUsagesJoinedWithSpaces = await getSpaceUsageAnalysisDataBySpaceIdsAndUsagePeriod(
+          spaceIdsForSite,
+          query.dayStartTime,
+          query.dayEndTime,
+        );
+
         return spaceUsagesJoinedWithSpaces;
       },
     },
