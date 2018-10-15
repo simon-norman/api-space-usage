@@ -101,11 +101,21 @@ module.exports = (Client, SpaceUsage) => {
     },
   ];
 
+  const mongoStagesToReturnUsagePeriodTimesAsUtcString = [
+    {
+      $addFields: {
+        usagePeriodStartTime: { $dateToString: { date: '$usagePeriodStartTime', timezone: 'GMT' } },
+        usagePeriodEndTime: { $dateToString: { date: '$usagePeriodEndTime', timezone: 'GMT' } },
+      },
+    },
+  ];
+
   const getSpaceUsageAnalysisDataBySpaceIdsAndUsagePeriod
     = async (spaceIds, dayStartTime, dayEndTime) => {
       const mongoQueryToGetSpaceUsageAnalysisData = [
         ...getMongoStagesToFilterSpaceUsagesByUsagePeriod(dayStartTime, dayEndTime),
         ...getMongoStagesToGetJoinedSpaceAndSpaceUsages(spaceIds),
+        ...mongoStagesToReturnUsagePeriodTimesAsUtcString,
         ...mongoStagesToMoveSpaceInfoToRootOfDocs,
         ...mongoStagesToRemoveUnwantedSpaceUsageSpaceInfoData,
       ];

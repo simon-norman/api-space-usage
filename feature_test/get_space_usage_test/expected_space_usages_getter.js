@@ -7,7 +7,7 @@ const filterSpaceUsagesBySpaceIdAndUsagePeriod = ({
   dayEndTimeToQuerySpaceUsage,
 }) =>
   testSpaceUsages.filter(spaceUsage =>
-    expectedSpaces.includes({ _id: spaceUsage.spaceId }) &&
+    expectedSpaces.some(space => space._id === spaceUsage.spaceId) &&
 
     spaceUsage.usagePeriodStartTime.toTimeString() >= dayStartTimeToQuerySpaceUsage &&
     spaceUsage.usagePeriodStartTime.toTimeString() <= dayEndTimeToQuerySpaceUsage &&
@@ -26,17 +26,17 @@ const addSpaceInfoToExpectedSpaceUsages = ({ expectedSpaceUsages, expectedSpaces
     return spaceUsageWithSpaceInfo;
   });
 
-const getExpectedSpaceUsagesWithSpaceInfo = async (
-  { testSpaceUsages, expectedSpaces },
-) => {
+const getExpectedSpaceUsagesWithSpaceInfo = async (params) => {
   const expectedSpaceUsagesWithMongoData
-  = filterSpaceUsagesBySpaceIdAndUsagePeriod({ testSpaceUsages, expectedSpaces });
+    = filterSpaceUsagesBySpaceIdAndUsagePeriod(params);
 
-  const mongoFieldsToRemove = ['_id', '_v'];
+  const mongoFieldsToRemove = ['_id', '__v'];
   const expectedSpaceUsages
   = convertMongoDocsToGraphQlResponse(expectedSpaceUsagesWithMongoData, mongoFieldsToRemove);
 
-  return addSpaceInfoToExpectedSpaceUsages({ expectedSpaceUsages, expectedSpaces });
+  return addSpaceInfoToExpectedSpaceUsages({
+    expectedSpaceUsages, expectedSpaces: params.expectedSpaces,
+  });
 };
 
 module.exports = getExpectedSpaceUsagesWithSpaceInfo;

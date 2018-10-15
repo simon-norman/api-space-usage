@@ -65,7 +65,7 @@ describe('Consumer requests space usage data,', () => {
     setUpGetSpaceUsageQueryString(getSpaceUsageQueryParams);
 
     const expectedSpaces = [testSpaces[2], testSpaces[3]];
-    await getExpectedSpaceUsagesWithSpaceInfo({
+    expectedSpaceUsagesWithSpaceInfo = await getExpectedSpaceUsagesWithSpaceInfo({
       testSpaceUsages, expectedSpaces, dayStartTimeToQuerySpaceUsage, dayEndTimeToQuerySpaceUsage,
     });
   });
