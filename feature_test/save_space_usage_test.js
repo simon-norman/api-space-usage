@@ -1,7 +1,6 @@
 
 const chai = require('chai');
 const { getConfigForEnvironment } = require('../config/config.js');
-let request = require('supertest');
 const sinon = require('sinon');
 const mongoose = require('mongoose');
 const SaveSpaceUsageControllerFactory = require('../controllers/save_space_usage_controller');
@@ -18,12 +17,13 @@ describe('Save space usage', () => {
   let spaceUsageApiInstance;
   let mockSpaceUsage;
   let createSpaceUsageMutationString;
+  let request;
 
   const setUpMockSpaceUsage = () => {
     mockSpaceUsage = {
       spaceId: '1',
-      usagePeriodEndTime: new Date('October 10, 2010 11:15:00').getTime(),
-      usagePeriodStartTime: new Date('October 10, 2010 11:00:00').getTime(),
+      usagePeriodEndTime: new Date('October 10, 2010 11:15:00').toUTCString(),
+      usagePeriodStartTime: new Date('October 10, 2010 11:00:00').toUTCString(),
       numberOfPeopleRecorded: 3,
       occupancy: 0.65,
     };
@@ -48,6 +48,8 @@ describe('Save space usage', () => {
     const savedMockSpaceUsage = allSavedSpaceUsages[0];
 
     savedMockSpaceUsage._id = savedMockSpaceUsage._id.toString();
+    savedMockSpaceUsage.usagePeriodEndTime = savedMockSpaceUsage.usagePeriodEndTime.toUTCString();
+    savedMockSpaceUsage.usagePeriodStartTime = savedMockSpaceUsage.usagePeriodStartTime.toUTCString();
     delete savedMockSpaceUsage.__v;
 
     return savedMockSpaceUsage;

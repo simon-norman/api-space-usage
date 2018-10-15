@@ -26,6 +26,6 @@ module.exports = {
       "class-methods-use-this": 0,
       "mocha/prefer-arrow-callback": 2,
       "func-names": 0,
-      "no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"],
+      "no-restricted-syntax": ["error", "LabeledStatement", "WithStatement"],
   }
   };

@@ -2,7 +2,7 @@ const { readFileSync } = require('fs');
 const { GraphQLServer } = require('graphql-yoga');
 const { getConfigForEnvironment } = require('../config/config.js');
 const mongoose = require('mongoose');
-let request = require('supertest');
+const request = require('supertest');
 
 const connectToSpaceUsageDb = async () => {
   const config = getConfigForEnvironment(process.env.NODE_ENV);
@@ -28,9 +28,9 @@ const setUpSpaceUsageApiTestInstance = async (controllerParams) => {
     debug: false,
   });
 
-  request = request('http://localhost:4000');
+  const spaceUsageApiRequest = request('http://localhost:4000');
 
-  return { spaceUsageApiInstance, request };
+  return { spaceUsageApiInstance, request: spaceUsageApiRequest };
 };
 
 module.exports = setUpSpaceUsageApiTestInstance;

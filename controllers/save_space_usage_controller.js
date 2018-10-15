@@ -11,6 +11,17 @@ module.exports = (SpaceUsage) => {
     }
   `;
 
+  const convertDatesInObjectToUtcString = (object) => {
+    const convertedObject = Object.assign({}, object);
+    for (const key in object) {
+      if (object[key] instanceof Date) {
+        convertedObject[key] = object[key].toUTCString();
+      }
+    }
+
+    return convertedObject;
+  };
+
   const resolvers = {
     Mutation: {
       CreateSpaceUsage: async (_, { input }) => {
@@ -23,11 +34,11 @@ module.exports = (SpaceUsage) => {
         );
 
         if (!savedSpaceUsage) {
-          savedSpaceUsage = new SpaceUsage(input);
-          savedSpaceUsage = await savedSpaceUsage.save();
+          const spaceUsageToBeSaved = new SpaceUsage(input);
+          savedSpaceUsage = await spaceUsageToBeSaved.save();
         }
 
-        return savedSpaceUsage;
+        return convertDatesInObjectToUtcString(savedSpaceUsage._doc);
       },
     },
   };
