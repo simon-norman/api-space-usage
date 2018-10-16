@@ -1,13 +1,12 @@
 
 const chai = require('chai');
 const { getConfigForEnvironment } = require('../config/config.js');
-let request = require('supertest');
 const sinon = require('sinon');
 const mongoose = require('mongoose');
 const SaveSpaceUsageControllerFactory = require('../controllers/save_space_usage_controller');
-const { GraphQLServer } = require('graphql-yoga');
 const SpaceUsage = require('../models/space_usage_model');
-const { readFileSync } = require('fs');
+const setUpSpaceUsageApiTestInstance = require('./space_usage_api_test_instance_factory');
+const ensureCollectionEmpty = require('./helpers/mongo_collection_drop');
 
 const { expect } = chai;
 
@@ -18,30 +17,7 @@ describe('Save space usage', () => {
   let spaceUsageApiInstance;
   let mockSpaceUsage;
   let createSpaceUsageMutationString;
-  let typeDefs;
-  let resolvers;
-
-  const setUpSpaceUsageApi = async () => {
-    ({ typeDefs, resolvers } = SaveSpaceUsageControllerFactory(SpaceUsage));
-
-    const spaceUsageDataSchema = readFileSync('graphql_schema/space_usage_schema.graphql', 'utf8');
-
-    const spaceUsageApi = new GraphQLServer({
-      typeDefs: [spaceUsageDataSchema, typeDefs],
-      resolvers,
-    });
-
-    spaceUsageApiInstance = await spaceUsageApi.start({
-      debug: false,
-    });
-  };
-
-  const ensureSpaceUsageCollectionEmpty = async () => {
-    const spaceUsageRecords = await SpaceUsage.find({});
-    if (spaceUsageRecords.length) {
-      await SpaceUsage.collection.drop();
-    }
-  };
+  let request;
 
   const setUpMockSpaceUsage = () => {
     mockSpaceUsage = {
@@ -72,6 +48,8 @@ describe('Save space usage', () => {
     const savedMockSpaceUsage = allSavedSpaceUsages[0];
 
     savedMockSpaceUsage._id = savedMockSpaceUsage._id.toString();
+    savedMockSpaceUsage.usagePeriodEndTime = savedMockSpaceUsage.usagePeriodEndTime.toUTCString();
+    savedMockSpaceUsage.usagePeriodStartTime = savedMockSpaceUsage.usagePeriodStartTime.toUTCString();
     delete savedMockSpaceUsage.__v;
 
     return savedMockSpaceUsage;
@@ -81,13 +59,14 @@ describe('Save space usage', () => {
     const config = getConfigForEnvironment(process.env.NODE_ENV);
     await mongoose.connect(config.spaceUsageDatabase.uri, { useNewUrlParser: true });
 
-    await setUpSpaceUsageApi();
-
-    request = request('http://localhost:4000');
+    ({ request, spaceUsageApiInstance } = await setUpSpaceUsageApiTestInstance({
+      controllerFactory: SaveSpaceUsageControllerFactory,
+      controllerFactoryDependencies: [SpaceUsage],
+    }));
   });
 
   beforeEach(async () => {
-    await ensureSpaceUsageCollectionEmpty();
+    await ensureCollectionEmpty(SpaceUsage);
 
     setUpMockSpaceUsage();
 
@@ -115,6 +94,8 @@ describe('Save space usage', () => {
     expect(returnedSavedSpaceUsage).deep.equals(savedMockSpaceUsage);
 
     delete savedMockSpaceUsage._id;
+    mockSpaceUsage.usagePeriodStartTime = new Date(mockSpaceUsage.usagePeriodStartTime).toUTCString();
+    mockSpaceUsage.usagePeriodEndTime = new Date(mockSpaceUsage.usagePeriodEndTime).toUTCString();
     expect(mockSpaceUsage).deep.equals(savedMockSpaceUsage);
   });
 

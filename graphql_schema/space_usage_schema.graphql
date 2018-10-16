@@ -2,8 +2,8 @@
     type SpaceUsage {
       _id: String!
       spaceId: String
-      usagePeriodStartTime: Float!
-      usagePeriodEndTime: Float!
+      usagePeriodStartTime: String!
+      usagePeriodEndTime: String!
       numberOfPeopleRecorded: Int!
       occupancy: Float!
     }
@@ -16,12 +16,12 @@
       occupancy: Float!
     }
 
-    type SpaceUsageAnalysisData {
+    type SpaceUsagesWithSpaceInfo {
       spaceId: String!
       spaceName: String!
       spaceCategory: String!
-      usagePeriodStartTime: Float!
-      usagePeriodEndTime: Float!
+      usagePeriodStartTime: String!
+      usagePeriodEndTime: String!
       numberOfPeopleRecorded: Int!
       occupancy: Float!     
     }
