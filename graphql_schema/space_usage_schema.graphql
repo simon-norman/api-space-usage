@@ -10,8 +10,8 @@
 
     input SpaceUsageInput {
       spaceId: String!
-      usagePeriodStartTime: String!
-      usagePeriodEndTime: String!
+      usagePeriodStartTime: Float!
+      usagePeriodEndTime: Float!
       numberOfPeopleRecorded: Int!
       occupancy: Float!
     }

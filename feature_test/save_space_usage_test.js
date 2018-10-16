@@ -22,8 +22,8 @@ describe('Save space usage', () => {
   const setUpMockSpaceUsage = () => {
     mockSpaceUsage = {
       spaceId: '1',
-      usagePeriodEndTime: new Date('October 10, 2010 11:15:00').toUTCString(),
-      usagePeriodStartTime: new Date('October 10, 2010 11:00:00').toUTCString(),
+      usagePeriodEndTime: new Date('October 10, 2010 11:15:00').getTime(),
+      usagePeriodStartTime: new Date('October 10, 2010 11:00:00').getTime(),
       numberOfPeopleRecorded: 3,
       occupancy: 0.65,
     };
@@ -94,6 +94,8 @@ describe('Save space usage', () => {
     expect(returnedSavedSpaceUsage).deep.equals(savedMockSpaceUsage);
 
     delete savedMockSpaceUsage._id;
+    mockSpaceUsage.usagePeriodStartTime = new Date(mockSpaceUsage.usagePeriodStartTime).toUTCString();
+    mockSpaceUsage.usagePeriodEndTime = new Date(mockSpaceUsage.usagePeriodEndTime).toUTCString();
     expect(mockSpaceUsage).deep.equals(savedMockSpaceUsage);
   });
 
