@@ -104,8 +104,16 @@ module.exports = (Client, SpaceUsage) => {
   const mongoStagesToReturnUsagePeriodTimesAsUtcString = [
     {
       $addFields: {
-        usagePeriodStartTime: { $dateToString: { date: '$usagePeriodStartTime', timezone: 'GMT' } },
-        usagePeriodEndTime: { $dateToString: { date: '$usagePeriodEndTime', timezone: 'GMT' } },
+        usagePeriodStartTime: {
+          $dateToString: {
+            date: '$usagePeriodStartTime', format: '%Y-%m-%dT%H:%M:%S.%LZ', timezone: 'GMT',
+          },
+        },
+        usagePeriodEndTime: {
+          $dateToString: {
+            date: '$usagePeriodEndTime', format: '%Y-%m-%dT%H:%M:%S.%LZ', timezone: 'GMT',
+          },
+        },
       },
     },
   ];
