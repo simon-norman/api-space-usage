@@ -8,9 +8,11 @@ This API stores and provides access to the actual space usage data, which the Sp
 
 ## Technical overview
 
-The service is written in Node, running on a Graph QL server, with a Mongo database that stores the analysis data. 
+The API is written in Node, running on a Graph QL server, with a Mongo database that stores the analysis data.
 
-Tests written using Chai and run in Mocha.
+The app is wired up using a dependency injection container that automatically reads each module's dependencies and then initialises the module with those dependencies. The container then stores that module so that it can be passed to other modules that depend on it. 
+
+BDD tests are written using Chai and run in Mocha, using Supertest to call endpoints.
 
 The service is secured using OAUTH 3rd party service. 
 
