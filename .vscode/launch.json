@@ -14,6 +14,7 @@
             "--timeout",
             "999999",
             "--colors",
+            "--exit",
             "./{,!(node_modules)/**/}*test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
@@ -29,6 +30,7 @@
             "--timeout",
             "999999",
             "--colors",
+            "--exit",
             "./{,!(node_modules)/**/}*di_container_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
@@ -44,6 +46,7 @@
             "--timeout",
             "999999",
             "--colors",
+            "--exit",
             "./{,!(node_modules)/**/}*di_container_incl_stamps_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
@@ -51,7 +54,7 @@
     {
         "type": "node",
         "request": "launch",
-        "name": "Number of people in usage period calculator test",
+        "name": "Authentication test",
         "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
         "args": [
             "-u",
@@ -59,14 +62,15 @@
             "--timeout",
             "999999",
             "--colors",
-            "./{,!(node_modules)/**/}*no_people_in_usage_period_calculator_test.js"
+            "--exit",
+            "./{,!(node_modules)/**/}*auth_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },
     {
         "type": "node",
         "request": "launch",
-        "name": "Space controller tests",
+        "name": "Get space tests",
         "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
         "args": [
             "-u",
@@ -74,14 +78,15 @@
             "--timeout",
             "999999",
             "--colors",
-            "./{,!(node_modules)/**/}*space_controller_test.js"
+            "--exit",
+            "./{,!(node_modules)/**/}*get_spaces_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },
     {
         "type": "node",
         "request": "launch",
-        "name": "Space usage controller tests",
+        "name": "Save space usage test",
         "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
         "args": [
             "-u",
@@ -89,14 +94,15 @@
             "--timeout",
             "999999",
             "--colors",
-            "./{,!(node_modules)/**/}*space_usage_controller_test.js"
+            "--exit",
+            "./{,!(node_modules)/**/}*save_space_usage_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },
     {
         "type": "node",
         "request": "launch",
-        "name": "Routes tests",
+        "name": "Get space usage test",
         "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
         "args": [
             "-u",
@@ -104,7 +110,8 @@
             "--timeout",
             "999999",
             "--colors",
-            "./{,!(node_modules)/**/}*routes_test.js"
+            "--exit",
+            "./{,!(node_modules)/**/}*get_space_usage_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },
@@ -119,7 +126,8 @@
             "--timeout",
             "999999",
             "--colors",
-            "./{,!(node_modules)/**/}*space_usage_test.js"
+            "--exit",
+            "./{,!(node_modules)/**/}*space_usage_model_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },
@@ -134,7 +142,8 @@
             "--timeout",
             "999999",
             "--colors",
-            "./{,!(node_modules)/**/}*space_test.js"
+            "--exit",
+            "./{,!(node_modules)/**/}*space_model_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },
@@ -149,9 +158,24 @@
             "--timeout",
             "999999",
             "--colors",
+            "--exit",
             "./{,!(node_modules)/**/}*config_test.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Launch graphql server",
+        "env": {"NODE_ENV": "development"},
+        "program": "${workspaceRoot}/server/server.js"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Launch Program in test environment",
+        "env": {"NODE_ENV": "test"},
+        "program": "${workspaceRoot}/app.js"
     },
     {
         "type": "node",

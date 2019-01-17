@@ -2,7 +2,7 @@
 const { expect } = require('chai');
 const mongoose = require('mongoose');
 const { getConfigForEnvironment } = require('../config/config.js');
-const SpaceUsage = require('./space_usage.js');
+const SpaceUsage = require('./space_usage_model');
 
 describe('space_usage', () => {
   let config;
@@ -50,19 +50,6 @@ describe('space_usage', () => {
     mongoose.connection.close();
   });
 
-  it('should save space usage when validation is successful', async function () {
-    const spaceUsage = new SpaceUsage(mockSpaceUsage);
-    const savedSpaceUsage = await spaceUsage.save();
-
-    expect(savedSpaceUsage.usagePeriodStartTime.getTime())
-      .to.equal(mockSpaceUsage.usagePeriodStartTime);
-    expect(savedSpaceUsage.usagePeriodEndTime.getTime())
-      .to.equal(mockSpaceUsage.usagePeriodEndTime);
-
-    expect(savedSpaceUsage.spaceId).to.equal(mockSpaceUsage.spaceId);
-    expect(savedSpaceUsage.numberOfPeopleRecorded).to.equal(mockSpaceUsage.numberOfPeopleRecorded);
-  });
-
   it('should reject save if space id not provided', async function () {
     mockSpaceUsage.spaceId = '';
     const wasErrorThrown = await doesSaveSpaceUsageThrowError();
@@ -77,22 +64,8 @@ describe('space_usage', () => {
     expect(wasErrorThrown).to.equal(true);
   });
 
-  it('should reject save if usagePeriodStartTime not in a date or epoch time format', async function () {
-    mockSpaceUsage.usagePeriodStartTime = '1.3333';
-    const wasErrorThrown = await doesSaveSpaceUsageThrowError();
-
-    expect(wasErrorThrown).to.equal(true);
-  });
-
   it('should reject save if usagePeriodEndTime not provided', async function () {
     mockSpaceUsage.usagePeriodEndTime = '';
-    const wasErrorThrown = await doesSaveSpaceUsageThrowError();
-
-    expect(wasErrorThrown).to.equal(true);
-  });
-
-  it('should reject save if usagePeriodEndTime not in a date or epoch time format', async function () {
-    mockSpaceUsage.usagePeriodEndTime = '1.3333';
     const wasErrorThrown = await doesSaveSpaceUsageThrowError();
 
     expect(wasErrorThrown).to.equal(true);

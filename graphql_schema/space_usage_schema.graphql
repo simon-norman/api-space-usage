@@ -1,0 +1,34 @@
+
+    type SpaceUsage {
+      _id: String!
+      spaceId: String
+      usagePeriodStartTime: String!
+      usagePeriodEndTime: String!
+      numberOfPeopleRecorded: Int!
+      occupancy: Float!
+    }
+
+    input SpaceUsageInput {
+      spaceId: String!
+      usagePeriodStartTime: Float!
+      usagePeriodEndTime: Float!
+      numberOfPeopleRecorded: Int!
+      occupancy: Float!
+    }
+
+    type SpaceUsagesWithSpaceInfo {
+      spaceId: String!
+      spaceName: String!
+      spaceCategory: String!
+      usagePeriodStartTime: String!
+      usagePeriodEndTime: String!
+      numberOfPeopleRecorded: Int!
+      occupancy: Float!     
+    }
+
+    type Space {
+      _id: String!
+      name: String!
+      category: String!
+      occupancyCapacity: Int!
+    }

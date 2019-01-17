@@ -2,7 +2,7 @@
 const { expect } = require('chai');
 const mongoose = require('mongoose');
 const { getConfigForEnvironment } = require('../config/config.js');
-const Space = require('./space.js');
+const Space = require('./space_model');
 
 describe('space', () => {
   let config;
@@ -35,9 +35,10 @@ describe('space', () => {
     await ensureSpaceCollectionEmpty();
 
     mockSpace = {
+      _id: '1AD',
       name: 'Meeting room 1',
+      category: 'Meeting room',
       occupancyCapacity: 8,
-      siteId: '1',
     };
   });
 
@@ -50,9 +51,18 @@ describe('space', () => {
     const space = new Space(mockSpace);
     const savedSpace = await space.save();
 
+    expect(savedSpace._id).to.equal(mockSpace._id);
     expect(savedSpace.name).to.equal(mockSpace.name);
+    expect(savedSpace.category).to.equal(mockSpace.category);
     expect(savedSpace.occupancyCapacity).to.equal(mockSpace.occupancyCapacity);
     expect(savedSpace.siteId).to.equal(mockSpace.siteId);
+  });
+
+  it('should reject save if id not provided', async function () {
+    mockSpace._id = '';
+    const wasErrorThrown = await doesSaveSpaceThrowError();
+
+    expect(wasErrorThrown).to.equal(true);
   });
 
   it('should reject save if name not provided', async function () {
@@ -64,13 +74,6 @@ describe('space', () => {
 
   it('should reject save if occupancyCapacity not provided', async function () {
     mockSpace.occupancyCapacity = '';
-    const wasErrorThrown = await doesSaveSpaceThrowError();
-
-    expect(wasErrorThrown).to.equal(true);
-  });
-
-  it('should reject save if siteId not provided', async function () {
-    mockSpace.siteId = '';
     const wasErrorThrown = await doesSaveSpaceThrowError();
 
     expect(wasErrorThrown).to.equal(true);
