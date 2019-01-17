@@ -24,7 +24,7 @@ Run 'npm install' to install all dependencies, then 'npm run start' to run local
 
 ## How to run tests
 
-Run 'npm run unit-test'.
+Run 'npm run test'.
 
 
 
