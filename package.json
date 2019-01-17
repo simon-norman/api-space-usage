@@ -1,7 +1,7 @@
 {
   "name": "space-usage-analyst",
   "version": "1.0.0",
-  "description": "Service for getting and saving the space usage analysis",
+  "description": "Service for getting and saving the space usage analysis ",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
